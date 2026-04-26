@@ -25,7 +25,7 @@
 
 9G Files has **141% more features** than Samsung My Files and outscores it in every single category.
 
-**[9G Files](https://rkarikari.github.io/9GFiles/)**
+**[9G Files vs Other popular ones](https://rkarikari.github.io/9GFiles/)**
 ---
 
 ## What You Can Do
