@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="?attr/colorSurface">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:padding="16dp" android:gravity="center_vertical">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="File Tags"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnAddTag"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Tag Selected" app:icon="@drawable/ic_add"/>
+    </LinearLayout>
+
+    <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:scrollbars="none" android:paddingStart="12dp" android:paddingEnd="12dp">
+        <com.google.android.material.chip.ChipGroup android:id="@+id/chipGroupTags"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:paddingBottom="8dp" app:singleLine="true" app:singleSelection="true"/>
+    </HorizontalScrollView>
+
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:padding="16dp" android:gravity="center_vertical"
+        android:visibility="gone">
+        <TextView android:id="@+id/tvTaggedCount" android:layout_width="0dp"
+            android:layout_height="wrap_content" android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnBrowseTagged"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Browse" android:visibility="gone"/>
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvTaggedFiles"
+        android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:visibility="gone"/>
+
+    <LinearLayout android:id="@+id/emptyTagsView"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="center" android:gravity="center"
+        android:orientation="vertical" android:padding="32dp" android:layout_weight="1">
+        <ImageView android:layout_width="64dp" android:layout_height="64dp"
+            android:src="@drawable/ic_bookmark" android:alpha="0.3"
+            app:tint="?attr/colorOnSurface"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="12dp" android:text="No tags yet"
+            android:textAppearance="?attr/textAppearanceBodyLarge" android:alpha="0.6"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="4dp" android:gravity="center"
+            android:text="Select files in Explorer, then tap 'Tag Selected'"
+            android:textAppearance="?attr/textAppearanceBodySmall" android:alpha="0.45"/>
+    </LinearLayout>
+
+</LinearLayout>

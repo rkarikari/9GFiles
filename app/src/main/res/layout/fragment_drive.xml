@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/colorSurface">
+
+    <!-- ── Account header ─────────────────────────────────────────── -->
+    <LinearLayout
+        android:id="@+id/layoutAccount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="4dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ImageView
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@drawable/ic_google_drive"
+            android:scaleType="fitCenter"
+            android:layout_marginEnd="12dp" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvAccountName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="John Smith" />
+
+            <TextView
+                android:id="@+id/tvAccountEmail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="john@gmail.com" />
+
+        </LinearLayout>
+
+        <!-- Search button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSearch"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="Search Drive"
+            app:icon="@drawable/ic_search" />
+
+        <!-- Sign out -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSignOut"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sign out"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+    <!-- ── Quota bar ───────────────────────────────────────────────── -->
+    <LinearLayout
+        android:id="@+id/layoutQuota"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/quotaBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            app:trackCornerRadius="2dp"
+            app:trackThickness="4dp"
+            app:indicatorColor="#4285F4"
+            app:trackColor="?attr/colorOutlineVariant"
+            tools:progress="42" />
+
+        <TextView
+            android:id="@+id/tvQuota"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="8.3 GB used of 15 GB" />
+
+    </LinearLayout>
+
+    <!-- ── Section selector chips ─────────────────────────────────── -->
+    <com.google.android.material.chip.ChipGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="4dp"
+        app:selectionRequired="true"
+        app:singleSelection="true"
+        android:visibility="gone"
+        android:id="@+id/chipGroupSections"
+        tools:visibility="visible">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipMyDrive"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="My Drive"
+            android:checked="true" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipStarred"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Starred" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipShared"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Shared" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipTrash"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Trash" />
+
+    </com.google.android.material.chip.ChipGroup>
+
+    <!-- ── Browse toolbar: breadcrumb + action buttons ────────────── -->
+    <LinearLayout
+        android:id="@+id/layoutBrowse"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="4dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            android:id="@+id/tvBreadcrumb"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="13sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:maxLines="1"
+            android:ellipsize="start"
+            tools:text="My Drive › Projects › 2026" />
+
+        <!-- New folder -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnNewFolder"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="New folder"
+            app:icon="@drawable/ic_folder"
+            android:visibility="gone" />
+
+        <!-- Upload -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUpload"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="Upload"
+            app:icon="@drawable/ic_add"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <!-- ── Progress indicator ─────────────────────────────────────── -->
+    <ProgressBar
+        android:id="@+id/progressDrive"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:indeterminate="true"
+        android:visibility="gone" />
+
+    <!-- ── Empty label ────────────────────────────────────────────── -->
+    <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="48dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:visibility="gone"
+        tools:text="This folder is empty"
+        tools:visibility="visible" />
+
+    <!-- ── File list ──────────────────────────────────────────────── -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvDrive"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:listitem="@layout/item_file_list" />
+
+    <!-- ── Sign-in state ──────────────────────────────────────────── -->
+    <LinearLayout
+        android:id="@+id/layoutSignIn"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="40dp"
+        android:visibility="visible">
+
+        <ImageView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:src="@drawable/ic_google_drive"
+            android:scaleType="fitCenter"
+            android:layout_marginBottom="20dp"
+            android:contentDescription="Google Drive" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Google Drive"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Browse, upload, download, rename and manage all your Drive files directly."
+            android:textSize="14sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:gravity="center"
+            android:layout_marginBottom="28dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSignIn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sign in with Google"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            app:icon="@drawable/ic_google_drive"
+            app:iconGravity="textStart" />
+
+    </LinearLayout>
+
+</LinearLayout>

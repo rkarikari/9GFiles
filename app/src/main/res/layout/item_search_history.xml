@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="16dp"
+    android:paddingEnd="4dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
+
+    <ImageView
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/ic_search"
+        android:alpha="0.4"
+        android:layout_marginEnd="12dp"
+        android:tint="?attr/colorOnSurfaceVariant" />
+
+    <TextView
+        android:id="@+id/tvQuery"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurface" />
+
+    <ImageButton
+        android:id="@+id/btnDelete"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/ic_close"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:tint="?attr/colorOnSurfaceVariant"
+        android:contentDescription="Remove" />
+</LinearLayout>

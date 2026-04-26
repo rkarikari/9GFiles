@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- Search bar -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginTop="8dp"
+        android:hint="Search apps…"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+        app:startIconDrawable="@drawable/ic_search">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionSearch"
+            android:inputType="text"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Filter / Sort chips -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:layout_marginTop="6dp">
+        <com.google.android.material.chip.ChipGroup
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="12dp"
+            app:singleSelection="false">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipUser"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="User Apps"/>
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipSystem"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="System"/>
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipSortName"
+                style="@style/Widget.Material3.Chip.Assist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="A–Z"/>
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipSortSize"
+                style="@style/Widget.Material3.Chip.Assist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Size"/>
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipSortDate"
+                style="@style/Widget.Material3.Chip.Assist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Install Date"/>
+        </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
+
+    <!-- Count row -->
+    <TextView
+        android:id="@+id/tvAppCount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="4dp"
+        android:textAppearance="?attr/textAppearanceLabelSmall"
+        android:textColor="?attr/colorOnSurfaceVariant"/>
+
+    <ProgressBar
+        android:id="@+id/progressApps"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:indeterminate="true"
+        android:visibility="gone"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvApps"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="80dp"/>
+</LinearLayout>

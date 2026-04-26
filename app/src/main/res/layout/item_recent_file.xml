@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="130dp"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="?attr/colorSurfaceVariant"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <FrameLayout
+            android:id="@+id/iconContainer"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/bg_icon_rounded">
+
+            <ImageView
+                android:id="@+id/ivIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_file_generic" />
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface"
+            tools:text="track_01.mp3" />
+
+        <TextView
+            android:id="@+id/tvPath"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="11sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="/Music" />
+
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="11sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:alpha="0.7"
+            tools:text="Mon, 08:15" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

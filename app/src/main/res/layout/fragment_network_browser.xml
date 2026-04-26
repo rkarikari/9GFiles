@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+
+    <!-- Connection list -->
+    <LinearLayout
+        android:id="@+id/layoutConnections"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:text="Saved Connections"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvConnections"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingBottom="80dp"/>
+
+        <TextView
+            android:id="@+id/tvConnectionsEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="40dp"
+            android:text="No connections saved.\nTap + to add FTP, WebDAV, or SMB."
+            android:textAlignment="center"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone"/>
+
+        <!-- Cloud / SAF button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOpenCloud"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="Open Cloud Storage (Drive, Dropbox…)"
+            app:icon="@drawable/ic_download"/>
+
+    </LinearLayout>
+
+    <!-- Remote file browser (shown when connected) -->
+    <LinearLayout
+        android:id="@+id/layoutRemoteBrowser"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:gravity="center_vertical"
+            android:background="?attr/colorSurfaceVariant">
+
+            <TextView
+                android:id="@+id/tvRemoteHost"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="?attr/textAppearanceTitleSmall"/>
+
+            <TextView
+                android:id="@+id/tvRemotePath"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:ellipsize="start"
+                android:maxLines="1"/>
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/progressNetwork"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:indeterminate="true"
+            android:visibility="gone"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvRemoteFiles"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+
+    </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddConnection"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:contentDescription="Add connection"
+        app:srcCompat="@drawable/ic_add"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

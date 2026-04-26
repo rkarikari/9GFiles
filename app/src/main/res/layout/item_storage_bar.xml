@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="4dp">
+
+        <TextView
+            android:id="@+id/label0"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            tools:text="Images" />
+
+        <TextView
+            android:id="@+id/size0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="12.4 GB (43%)" />
+
+    </LinearLayout>
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/bar0"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="false"
+        app:trackCornerRadius="4dp"
+        app:trackThickness="10dp"
+        tools:progress="43" />
+
+</LinearLayout>

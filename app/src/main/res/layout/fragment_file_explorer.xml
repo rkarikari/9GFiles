@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+
+    <!-- Selection mode toolbar — overlays the breadcrumb bar when items are selected -->
+    <LinearLayout
+        android:id="@+id/selectionToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="?attr/colorSecondaryContainer"
+        android:elevation="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ImageButton
+            android:id="@+id/btnCancelSelection"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Cancel selection"
+            android:src="@drawable/ic_close"
+            android:tint="?attr/colorOnSecondaryContainer" />
+
+        <TextView
+            android:id="@+id/tvSelectionCount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="?attr/colorOnSecondaryContainer"
+            tools:text="3 selected" />
+
+        <ImageButton
+            android:id="@+id/btnSelectionCopy"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Copy"
+            android:src="@drawable/ic_content_copy"
+            android:tint="?attr/colorOnSecondaryContainer" />
+
+        <ImageButton
+            android:id="@+id/btnSelectionCut"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Cut / Move"
+            android:src="@drawable/ic_content_cut"
+            android:tint="?attr/colorOnSecondaryContainer" />
+
+        <ImageButton
+            android:id="@+id/btnSelectionDelete"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Move to trash"
+            android:src="@drawable/ic_delete"
+            android:tint="?attr/colorOnSecondaryContainer" />
+
+        <ImageButton
+            android:id="@+id/btnSelectionMore"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="More selection options"
+            android:src="@drawable/ic_more_vert"
+            android:tint="?attr/colorOnSecondaryContainer" />
+
+    </LinearLayout>
+
+    <!-- Breadcrumb navigation with back/forward buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:background="?attr/colorSurfaceVariant"
+        android:elevation="2dp"
+        android:gravity="center_vertical">
+
+        <ImageButton
+            android:id="@+id/btnNavBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_chevron_right"
+            android:rotation="180"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="?attr/colorOnSurface"
+            android:enabled="false"
+            android:alpha="0.38"
+            android:contentDescription="Back" />
+
+        <ImageButton
+            android:id="@+id/btnNavForward"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_chevron_right"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="?attr/colorOnSurface"
+            android:enabled="false"
+            android:alpha="0.38"
+            android:contentDescription="Forward" />
+
+        <HorizontalScrollView
+            android:id="@+id/breadcrumbScrollView"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:scrollbars="none">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupBreadcrumbs"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:paddingStart="4dp"
+                android:paddingEnd="12dp"
+                app:chipSpacingHorizontal="0dp"
+                app:singleLine="true" />
+
+        </HorizontalScrollView>
+
+        <!-- Drive switcher — tap to jump to any mounted volume's root -->
+        <ImageButton
+            android:id="@+id/btnSwitchDrive"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="4dp"
+            android:src="@drawable/ic_storage"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="?attr/colorOnSurface"
+            android:contentDescription="Switch drive" />
+
+    </LinearLayout>
+
+
+    <!-- Transfer Progress Card (visible during copy / move / delete / extract / compress) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardTransferProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="56dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="6dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Operation verb + filename -->
+            <TextView
+                android:id="@+id/tvTransferFileName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:maxLines="1"
+                android:ellipsize="middle"
+                android:layout_marginBottom="2dp"
+                tools:text="Copying: large_video_file.mp4" />
+
+            <!-- File counter (n of total) -->
+            <TextView
+                android:id="@+id/tvTransferCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="8dp"
+                tools:text="3 of 10 items" />
+
+            <!-- Progress bar + percent -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/operationProgressBar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:indeterminate="false"
+                    android:max="100"
+                    android:progress="0"
+                    android:layout_marginEnd="8dp"
+                    app:trackCornerRadius="4dp" />
+
+                <TextView
+                    android:id="@+id/tvTransferPercent"
+                    android:layout_width="40dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    tools:text="34%" />
+            </LinearLayout>
+
+            <!-- Bytes transferred / total -->
+            <TextView
+                android:id="@+id/tvTransferBytes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginTop="4dp"
+                tools:text="1.4 GB / 3.2 GB" />
+
+            <!-- Speed · ETA  and  Cancel button -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tvTransferSpeed"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorPrimary"
+                    tools:text="24.6 MB/s · ETA 1:18" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCancelTransfer"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="8dp"
+                    android:text="Cancel"
+                    android:textColor="?attr/colorError" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Paste action bar -->
+    <LinearLayout
+        android:id="@+id/pasteBar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="80dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_paste_bar"
+        android:elevation="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="8dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_content_paste"
+            app:tint="?attr/colorOnSecondaryContainer" />
+
+        <TextView
+            android:id="@+id/tvPasteInfo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSecondaryContainer"
+            tools:text="Copy 3 items here" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPaste"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Paste" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClearClipboard"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✕"
+            android:minWidth="0dp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp" />
+
+    </LinearLayout>
+
+    <!-- Main Content -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="48dp">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- Progress while loading (first load) -->
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                app:indicatorSize="48dp" />
+
+            <!-- Files RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvFiles"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingBottom="160dp"
+                android:scrollbars="vertical" />
+
+            <!-- Empty folder state -->
+            <LinearLayout
+                android:id="@+id/emptyView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="32dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:src="@drawable/ic_folder_open"
+                    android:alpha="0.4"
+                    app:tint="?attr/colorOnSurface" />
+
+                <TextView
+                    android:id="@+id/tvEmptyMessage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="This folder is empty"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:alpha="0.6" />
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <!-- FAB -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabCreate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="96dp"
+        android:contentDescription="Create new"
+        android:text="New"
+        app:icon="@drawable/ic_add"
+        />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

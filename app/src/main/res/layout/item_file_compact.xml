@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="40dp"
+    android:background="?attr/selectableItemBackground"
+    android:orientation="vertical">
+
+    <!-- Icon + name row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
+
+        <!-- Icon / check overlay -->
+        <FrameLayout
+            android:layout_width="20dp"
+            android:layout_height="20dp">
+
+            <ImageView
+                android:id="@+id/ivIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="File icon"
+                android:scaleType="centerInside"
+                tools:src="@drawable/ic_folder" />
+
+            <ImageView
+                android:id="@+id/ivCheck"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/bg_check_selected"
+                android:visibility="gone" />
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:ellipsize="middle"
+            android:singleLine="true"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurface"
+            tools:text="readme.txt" />
+
+    </LinearLayout>
+
+    <!-- Divider — now correctly spans full width as the bottom of a vertical layout -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="?attr/colorOutlineVariant" />
+
+</LinearLayout>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/colorSurface">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:gravity="center_vertical"
+        android:background="?attr/colorSurfaceVariant">
+
+        <ImageButton
+            android:id="@+id/btnSwitchDrive"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="4dp"
+            android:src="@drawable/ic_storage"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="?attr/colorOnSurface"
+            android:contentDescription="Switch drive" />
+
+        <TextView
+            android:id="@+id/tvTrashSize"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:text="Trash" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEmptyTrash"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Empty Trash"
+            android:enabled="false" />
+    </LinearLayout>
+
+    <!-- Selection toolbar — shown when items are long-press selected -->
+    <LinearLayout
+        android:id="@+id/selectionToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="?attr/colorSecondaryContainer"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:visibility="gone">
+
+        <ImageButton
+            android:id="@+id/btnCancelSelection"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Cancel selection"
+            android:src="@drawable/ic_close"
+            android:tint="?attr/colorOnSecondaryContainer" />
+
+        <TextView
+            android:id="@+id/tvSelectionCount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="?attr/colorOnSecondaryContainer" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSelectionRestore"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Restore"
+            android:textColor="?attr/colorOnSecondaryContainer" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSelectionDelete"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Delete"
+            android:textColor="?attr/colorError" />
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvTrash"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp" />
+
+    <LinearLayout
+        android:id="@+id/emptyTrashView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="48dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/ic_delete"
+            android:alpha="0.3"
+            app:tint="?attr/colorOnSurface" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Trash is empty"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:alpha="0.6" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/colorSurface">
+
+    <!-- Search bar -->
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurfaceVariant"
+        android:iconifiedByDefault="false"
+        android:queryHint="Search files and folders..."
+        app:searchIcon="@drawable/ic_search"
+        app:closeIcon="@drawable/ic_close"
+        app:queryBackground="@android:color/transparent" />
+
+    <!-- Selection toolbar — shown when items are long-press selected -->
+    <LinearLayout
+        android:id="@+id/selectionToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="?attr/colorSecondaryContainer"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ImageButton
+            android:id="@+id/btnCancelSelection"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Cancel selection"
+            android:src="@drawable/ic_close"
+            android:tint="?attr/colorOnSecondaryContainer" />
+
+        <TextView
+            android:id="@+id/tvSelectionCount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="?attr/colorOnSecondaryContainer"
+            tools:text="2 selected" />
+
+        <ImageButton
+            android:id="@+id/btnSelectionCopy"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Copy"
+            android:src="@drawable/ic_content_copy"
+            android:tint="?attr/colorOnSecondaryContainer" />
+
+        <ImageButton
+            android:id="@+id/btnSelectionCut"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Cut / Move"
+            android:src="@drawable/ic_content_cut"
+            android:tint="?attr/colorOnSecondaryContainer" />
+
+        <ImageButton
+            android:id="@+id/btnSelectionDelete"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Move to trash"
+            android:src="@drawable/ic_delete"
+            android:tint="?attr/colorOnSecondaryContainer" />
+
+        <ImageButton
+            android:id="@+id/btnSelectionMore"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="More options"
+            android:src="@drawable/ic_more_vert"
+            android:tint="?attr/colorOnSecondaryContainer" />
+
+    </LinearLayout>
+
+    <!-- Type filter chips -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupFilters"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            app:singleLine="true"
+            app:selectionRequired="false" />
+
+    </HorizontalScrollView>
+
+    <!-- Advanced filters toggle -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAdvancedFilters"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="Advanced Filters"
+        app:icon="@drawable/ic_tune" />
+
+    <!-- Advanced Filters Panel -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/advancedFiltersPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:visibility="gone"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Size filter -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="File Size"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:layout_marginBottom="8dp" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:selectionRequired="false"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipAnySize"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="Any size" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipSmall"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Small (&lt;1MB)" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipMedium"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Medium (1-100MB)" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipLarge"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Large (&gt;100MB)" />
+
+            </com.google.android.material.chip.ChipGroup>
+
+
+            <!-- Date range filter -->
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Date Modified"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnDateFrom"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:text="From date" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnDateTo"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:text="To date" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClearDates"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Clear dates" />
+
+            <!-- Options -->
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Include hidden files"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchHidden"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Search in subfolders"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchSubfolders"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Search inside file content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=".txt, .kt, .json, .xml …"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                </LinearLayout>
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchSearchInContent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnApplyFilters"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Apply Filters" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+
+    <!-- Search history list -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvHistory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <!-- Clear history button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnClearHistory"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="Clear History"
+        android:visibility="gone" />
+
+    <!-- Result count -->
+    <TextView
+        android:id="@+id/tvResultCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp"
+        android:textAppearance="?attr/textAppearanceLabelMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:visibility="gone"
+        tools:text="127 results"
+        tools:visibility="visible" />
+
+    <!-- Loading indicator -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/searchProgressBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <!-- Results list -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvResults"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp" />
+
+        <!-- Empty state -->
+        <LinearLayout
+            android:id="@+id/emptySearchView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <ImageView
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:src="@drawable/ic_search"
+                android:alpha="0.3"
+                app:tint="?attr/colorOnSurface" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Type to search"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:alpha="0.6" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Search by name, type, or size"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:alpha="0.4" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</LinearLayout>

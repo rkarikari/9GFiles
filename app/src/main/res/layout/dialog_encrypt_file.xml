@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/tvEncryptTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Encrypt File"
+        android:textAppearance="?attr/textAppearanceTitleLarge"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:id="@+id/tvEncryptSubtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:layout_marginBottom="20dp"/>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilPassword"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Password"
+        app:endIconMode="password_toggle"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Strength bar (hidden for decrypt) -->
+    <ProgressBar
+        android:id="@+id/strengthBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:layout_marginTop="8dp"
+        android:max="100"
+        android:progress="0"/>
+
+    <TextView
+        android:id="@+id/tvPasswordStrength"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textAppearance="?attr/textAppearanceLabelSmall"/>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilPasswordConfirm"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Confirm Password"
+        android:layout_marginTop="8dp"
+        app:endIconMode="password_toggle"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etPasswordConfirm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Progress (shown while encrypting) -->
+    <LinearLayout
+        android:id="@+id/layoutProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:layout_marginTop="12dp">
+        <ProgressBar
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"/>
+        <TextView
+            android:id="@+id/tvProgressLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Processing…"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="?attr/colorOnSurfaceVariant"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="20dp"
+        android:gravity="end">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEncryptCancel"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancel"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEncryptAction"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Encrypt"/>
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/action_copy"   android:icon="@drawable/ic_content_copy" android:title="Copy"       app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_cut"    android:icon="@drawable/ic_content_cut"  android:title="Cut (Move)" app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_delete" android:icon="@drawable/ic_delete"       android:title="Trash"      app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_select_all"    android:title="Select All"         app:showAsAction="never" />
+    <item android:id="@+id/action_share"         android:title="Share"              app:showAsAction="never" />
+    <item android:id="@+id/action_wifi_direct_send" android:title="Send via Wi-Fi Direct…" app:showAsAction="never" />
+    <item android:id="@+id/action_compress"           android:title="Compress to ZIP"           app:showAsAction="never" />
+    <item android:id="@+id/action_compress_encrypted"  android:title="Compress to Encrypted ZIP…" app:showAsAction="never" />
+    <item android:id="@+id/action_batch_rename"  android:title="Batch Rename…"      app:showAsAction="never" />
+    <item android:id="@+id/action_shred"         android:title="Secure Shred"       app:showAsAction="never" />
+    <item android:id="@+id/action_delete_permanently" android:title="Delete Permanently" app:showAsAction="never" />
+</menu>

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="16dp" android:paddingBottom="80dp">
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progressBar" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:layout_gravity="center"
+            android:indeterminate="true" android:visibility="gone" />
+
+        <TextView android:id="@+id/tvError" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:padding="16dp"
+            android:textColor="?attr/colorError" android:visibility="gone" />
+
+        <!-- App header card -->
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginBottom="12dp"
+            app:cardCornerRadius="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:padding="20dp" android:gravity="center_vertical">
+
+                <ImageView android:id="@+id/ivAppIcon" android:layout_width="64dp"
+                    android:layout_height="64dp" android:src="@drawable/ic_file_apk" />
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="16dp"
+                    android:orientation="vertical">
+
+                    <TextView android:id="@+id/tvAppName" android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceTitleLarge"
+                        android:text="App Name" />
+                    <TextView android:id="@+id/tvPackageName" android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceLabelSmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:text="com.example.app" android:fontFamily="monospace" />
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:layout_marginTop="8dp">
+                        <com.google.android.material.chip.Chip android:id="@+id/chipInstalled"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Installed" android:visibility="gone" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Details card -->
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginBottom="12dp"
+            app:cardCornerRadius="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:padding="16dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Details" android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Version" android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvVersion" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceBodyMedium" android:text="—" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="SDK Range" android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvSdkRange" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceBodyMedium" android:text="—" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="File size" android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvFileSize" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceBodyMedium" android:text="—" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="File name" android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvFileName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceBodyMedium" android:text="—" />
+                </LinearLayout>
+
+                <TextView android:id="@+id/tvInstalledVersion"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp" android:textColor="?attr/colorSecondary"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:visibility="gone" android:text="Installed: v1.0" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Permissions card -->
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginBottom="16dp"
+            app:cardCornerRadius="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:padding="16dp">
+                <TextView android:id="@+id/tvPermCount" android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:layout_marginBottom="8dp" android:text="Permissions" />
+                <TextView android:id="@+id/tvPermissions" android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:fontFamily="monospace" android:lineSpacingMultiplier="1.4"
+                    android:text="Loading…" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Action buttons -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnInstall"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp" android:text="Install" />
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnOpenApp"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginEnd="8dp"
+                android:text="Open App" android:visibility="gone" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnAppInfo"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:text="App Info" android:visibility="gone" />
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

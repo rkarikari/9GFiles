@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="?attr/colorSurface">
+
+    <!-- Header card -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_margin="16dp" app:cardCornerRadius="16dp"
+        app:cardBackgroundColor="?attr/colorSecondaryContainer">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="20dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Duplicate File Finder"
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                android:textColor="?attr/colorOnSecondaryContainer"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Find and remove identical files to free up storage space."
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSecondaryContainer" android:alpha="0.8"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="16dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnScan"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginEnd="8dp"
+                    android:text="Scan Storage" app:icon="@drawable/ic_search"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSelectAll"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginEnd="8dp"
+                    android:text="Select All Dupes"/>
+                <ImageButton
+                    android:id="@+id/btnSwitchDrive"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_storage"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:tint="?attr/colorOnSecondaryContainer"
+                    android:contentDescription="Switch drive" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progressBar" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:indeterminate="true"
+        android:layout_marginStart="16dp" android:layout_marginEnd="16dp"
+        android:visibility="gone"/>
+
+    <!-- Bulk-delete action bar — shown after "Select All Dupes" is pressed -->
+    <LinearLayout
+        android:id="@+id/bulkDeleteBar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="?attr/colorErrorContainer"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="8dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvBulkDeleteCount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="?attr/colorOnErrorContainer" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBulkDelete"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Delete All"
+            app:backgroundTint="?attr/colorError"
+            android:textColor="?attr/colorOnError" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelBulk"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancel"
+            android:textColor="?attr/colorOnErrorContainer" />
+
+    </LinearLayout>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:paddingStart="20dp" android:paddingEnd="20dp"
+        android:paddingTop="8dp" android:paddingBottom="8dp" android:gravity="center_vertical">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:orientation="vertical">
+            <TextView android:id="@+id/tvStatus" android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tap Scan to begin"
+                android:textAppearance="?attr/textAppearanceLabelLarge"/>
+            <TextView android:id="@+id/tvSummary" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:visibility="gone"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:textColor="?attr/colorError"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvDuplicates" android:layout_width="match_parent"
+        android:layout_height="0dp" android:layout_weight="1"
+        android:clipToPadding="false" android:paddingBottom="24dp"/>
+</LinearLayout>

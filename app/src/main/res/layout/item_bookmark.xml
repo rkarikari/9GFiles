@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent" android:layout_height="72dp"
+    android:background="?attr/selectableItemBackground"
+    android:orientation="horizontal" android:gravity="center_vertical"
+    android:paddingStart="16dp" android:paddingEnd="16dp">
+    <ImageView android:id="@+id/ivIcon" android:layout_width="40dp" android:layout_height="40dp"
+        android:background="@drawable/bg_icon_rounded" android:padding="8dp"
+        android:scaleType="centerInside" tools:src="@drawable/ic_folder" />
+    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight="1" android:layout_marginStart="12dp" android:orientation="vertical">
+        <TextView android:id="@+id/tvName" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:ellipsize="end" android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceBodyLarge" tools:text="📁 Downloads" />
+        <TextView android:id="@+id/tvPath" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:ellipsize="start" android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="/storage/emulated/0/Download" />
+    </LinearLayout>
+    <ImageView android:layout_width="20dp" android:layout_height="20dp"
+        android:src="@drawable/ic_chevron_right" app:tint="?attr/colorOnSurfaceVariant" />
+</LinearLayout>

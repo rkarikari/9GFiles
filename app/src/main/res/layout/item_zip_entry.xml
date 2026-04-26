@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginTop="2dp"
+    android:layout_marginBottom="2dp"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="64dp"
+        android:padding="8dp">
+
+        <!-- Icon -->
+        <ImageView
+            android:id="@+id/ivIcon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_icon_rounded"
+            android:contentDescription="File icon"
+            android:padding="8dp"
+            android:scaleType="centerInside"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:src="@drawable/ic_folder" />
+
+        <!-- Name -->
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="middle"
+            android:singleLine="true"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="?attr/colorOnSurface"
+            app:layout_constraintEnd_toStartOf="@id/tvSize"
+            app:layout_constraintStart_toEndOf="@id/ivIcon"
+            app:layout_constraintTop_toTopOf="@id/ivIcon"
+            app:layout_constraintBottom_toTopOf="@id/tvCompression"
+            tools:text="document.pdf" />
+
+        <!-- Compression ratio (bottom-left, below name) -->
+        <TextView
+            android:id="@+id/tvCompression"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:layout_constraintEnd_toStartOf="@id/tvSize"
+            app:layout_constraintStart_toEndOf="@id/ivIcon"
+            app:layout_constraintTop_toBottomOf="@id/tvName"
+            app:layout_constraintBottom_toBottomOf="@id/ivIcon"
+            tools:text="42% saved" />
+
+        <!-- Uncompressed size (right column, top) -->
+        <TextView
+            android:id="@+id/tvSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:gravity="end"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/ivIcon"
+            app:layout_constraintBottom_toTopOf="@id/tvCompressedSize"
+            tools:text="1.4 MB" />
+
+        <!-- Compressed size (right column, bottom) -->
+        <TextView
+            android:id="@+id/tvCompressedSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:alpha="0.6"
+            android:gravity="end"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvSize"
+            app:layout_constraintBottom_toBottomOf="@id/ivIcon"
+            tools:text="820 KB" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

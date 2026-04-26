@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Status Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        android:layout_marginBottom="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="FTP Server"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/tvServerAddress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tap Start to launch"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textIsSelectable="true"
+                android:layout_marginBottom="12dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Port"
+                    android:layout_marginEnd="12dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPort"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="2121"
+                        android:inputType="number"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnToggleServer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Start Server"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnShowQr"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="QR"
+                    android:enabled="false"
+                    android:contentDescription="Show QR code for server URL"/>
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Info card -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="8dp"
+        android:layout_marginBottom="12dp"
+        app:cardBackgroundColor="?attr/colorSurfaceVariant">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="Anonymous read-only. Connect with any FTP client (FileZilla, WinSCP, Nautilus). Both device and PC must be on the same Wi-Fi network."
+            android:textAppearance="?attr/textAppearanceBodySmall"/>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Log area -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Session Log"
+                android:textAppearance="?attr/textAppearanceLabelMedium"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClearLog"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Clear"/>
+        </LinearLayout>
+
+        <ScrollView
+            android:id="@+id/scrollLog"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="?attr/colorSurfaceVariant"
+            android:padding="8dp">
+            <TextView
+                android:id="@+id/tvLog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:fontFamily="monospace"
+                android:text=""/>
+        </ScrollView>
+    </LinearLayout>
+</LinearLayout>

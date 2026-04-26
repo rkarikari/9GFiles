@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Status card -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="12dp"
+        android:layout_marginBottom="12dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Wi-Fi Direct Transfer"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Initializing…"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="12dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnDiscover"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="Discover"
+                    android:enabled="false"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnReceive"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="Receive Files"
+                    android:visibility="gone"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSendFiles"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Send Files"/>
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <ProgressBar
+        android:id="@+id/progressWifi"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:indeterminate="true"
+        android:visibility="gone"
+        android:layout_marginBottom="4dp"/>
+
+    <!-- Transfer progress card (visible during send / receive) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardTransferProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="12dp"
+        android:layout_marginBottom="12dp"
+        android:visibility="gone">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tvTransferFileName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:maxLines="1"
+                android:ellipsize="middle"
+                android:layout_marginBottom="8dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ProgressBar
+                    android:id="@+id/progressTransfer"
+                    style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:indeterminate="false"
+                    android:max="100"
+                    android:progress="0"
+                    android:layout_marginEnd="8dp"/>
+
+                <TextView
+                    android:id="@+id/tvTransferPercent"
+                    android:layout_width="40dp"
+                    android:layout_height="wrap_content"
+                    android:text="0%"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:gravity="end"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvTransferBytes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginTop="4dp"/>
+
+            <!-- Speed · ETA row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp">
+
+                <TextView
+                    android:id="@+id/tvTransferSpeed"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text=""
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorPrimary"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCancelTransfer"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="8dp"
+                    android:text="Cancel"
+                    android:textColor="?attr/colorError"/>
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Peer list -->
+    <TextView
+        android:id="@+id/tvPeerCount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tap Discover to search"
+        android:textAppearance="?attr/textAppearanceLabelMedium"
+        android:paddingVertical="4dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvPeers"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+    <!-- Transfer log -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Transfer Log"
+        android:textAppearance="?attr/textAppearanceLabelMedium"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:background="?attr/colorSurfaceVariant"
+        android:padding="6dp">
+        <TextView
+            android:id="@+id/tvLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textAppearance="?attr/textAppearanceBodySmall"/>
+    </ScrollView>
+</LinearLayout>

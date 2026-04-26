@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:padding="24dp">
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="Sort By" android:textAppearance="?attr/textAppearanceHeadlineSmall"
+        android:layout_marginBottom="16dp" />
+    <RadioGroup android:id="@+id/rgSort" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rbNameAsc"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Name (A → Z)" />
+        <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rbNameDesc"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Name (Z → A)" />
+        <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rbSizeAsc"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Size (Smallest first)" />
+        <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rbSizeDesc"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Size (Largest first)" />
+        <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rbDateDesc"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Date (Newest first)" />
+        <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rbDateAsc"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Date (Oldest first)" />
+        <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rbTypeAsc"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Type (A → Z)" />
+        <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rbTypeDesc"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Type (Z → A)" />
+        <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rbExtAsc"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Extension (A → Z)" />
+        <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rbExtDesc"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Extension (Z → A)" />
+    </RadioGroup>
+</LinearLayout>

@@ -1,0 +1,609 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="120dp">
+
+        <!-- ── Header: Greeting + Avatar ── -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_home_header"
+            android:paddingStart="20dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvGreeting"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.10"
+                    android:textSize="10sp"
+                    android:textColor="?attr/colorPrimary"
+                    android:layout_marginBottom="2dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="9G Files"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorOnSurface" />
+
+            </LinearLayout>
+
+            <FrameLayout
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_avatar">
+
+                <TextView
+                    android:id="@+id/tvAvatarInitials"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="9G"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <!-- ── Search Bar (clickable → navigates to SearchFragment) ── -->
+        <LinearLayout
+            android:id="@+id/searchBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="4dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:background="@drawable/bg_search_bar"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_search"
+                android:alpha="0.45"
+                app:tint="?attr/colorOnSurfaceVariant" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp"
+                android:text="Search files and folders…"
+                android:textSize="14sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:alpha="0.6" />
+
+        </LinearLayout>
+
+        <!-- ── Storage Card ── -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="?attr/colorSurfaceVariant"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Gradient accent line -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="3dp"
+                    android:background="@drawable/gradient_storage_accent" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="10dp">
+
+                        <TextView
+                            android:id="@+id/tvStorageLabel"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:textColor="?attr/colorOnSurface"
+                            tools:text="Internal Storage" />
+
+                        <TextView
+                            android:id="@+id/tvStoragePercent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="13sp"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            tools:text="64% used" />
+
+                    </LinearLayout>
+
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/storageProgress"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        app:trackCornerRadius="3dp"
+                        app:trackThickness="6dp"
+                        app:indicatorColor="?attr/colorPrimary"
+                        app:trackColor="?attr/colorOutlineVariant"
+                        tools:progress="64" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tvStorageTotal"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textSize="12sp"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            tools:text="71.4 GB used of 128 GB" />
+
+                        <TextView
+                            android:id="@+id/tvStorageFree"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            tools:text="45 GB free" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ── Drives ── -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp"
+            android:text="Drives"
+            android:textAllCaps="true"
+            android:letterSpacing="0.07"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp">
+
+            <LinearLayout
+                android:id="@+id/driveCardsContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical" />
+
+        </HorizontalScrollView>
+
+        <!-- ── Quick Access ── -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp"
+            android:text="Quick Access"
+            android:textAllCaps="true"
+            android:letterSpacing="0.07"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <androidx.gridlayout.widget.GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            app:columnCount="4">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnDownloads"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_columnWeight="1"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/qa_downloads_bg"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/qa_downloads_stroke">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp">
+
+                    <FrameLayout
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_icon_rounded"
+                        android:backgroundTint="@color/qa_downloads_icon_bg"
+                        android:layout_marginBottom="8dp">
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_download"
+                            app:tint="#BA7517" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Downloads"
+                        android:textSize="11sp"
+                        android:textColor="?attr/colorOnSurface"
+                        android:gravity="center" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnDcim"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_columnWeight="1"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/qa_camera_bg"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/qa_camera_stroke">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp">
+
+                    <FrameLayout
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_icon_rounded"
+                        android:backgroundTint="@color/qa_camera_icon_bg"
+                        android:layout_marginBottom="8dp">
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_file_image"
+                            app:tint="#185FA5" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Camera"
+                        android:textSize="11sp"
+                        android:textColor="?attr/colorOnSurface"
+                        android:gravity="center" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnDocuments"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_columnWeight="1"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/qa_docs_bg"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/qa_docs_stroke">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp">
+
+                    <FrameLayout
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_icon_rounded"
+                        android:backgroundTint="@color/qa_docs_icon_bg"
+                        android:layout_marginBottom="8dp">
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_file_document"
+                            app:tint="#3B6D11" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Documents"
+                        android:textSize="11sp"
+                        android:textColor="?attr/colorOnSurface"
+                        android:gravity="center" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnMusic"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_columnWeight="1"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/qa_music_bg"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/qa_music_stroke">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp">
+
+                    <FrameLayout
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_icon_rounded"
+                        android:backgroundTint="@color/qa_music_icon_bg"
+                        android:layout_marginBottom="8dp">
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_file_audio"
+                            app:tint="#0F6E56" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Music"
+                        android:textSize="11sp"
+                        android:textColor="?attr/colorOnSurface"
+                        android:gravity="center" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </androidx.gridlayout.widget.GridLayout>
+
+        <!-- Google Drive REST API card removed. Binding stub kept at GONE
+             so that any residual generated-binding reference compiles safely.
+             Cloud providers (Google Drive via SAF, Dropbox, OneDrive, etc.)
+             appear automatically in the Drives row below. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardGoogleDrive"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone"
+            app:cardElevation="0dp">
+            <!-- Stub child keeps tvGoogleDriveStatus binding reference valid -->
+            <TextView
+                android:id="@+id/tvGoogleDriveStatus"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ── Categories ── -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp"
+            android:text="Categories"
+            android:textAllCaps="true"
+            android:letterSpacing="0.07"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvCategories"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:nestedScrollingEnabled="false"
+            tools:listitem="@layout/item_category"
+            tools:itemCount="6" />
+
+        <!-- ── Recent Files ── -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Recent Files"
+                android:textAllCaps="true"
+                android:letterSpacing="0.07"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClearRecent"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Clear"
+                android:textSize="13sp"
+                android:minHeight="0dp"
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvRecentEmpty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginBottom="8dp"
+            android:text="No recent files"
+            android:textSize="13sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="visible" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvRecentFiles"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:clipToPadding="false"
+            android:nestedScrollingEnabled="false"
+            android:orientation="horizontal"
+            tools:listitem="@layout/item_recent_file"
+            tools:itemCount="5" />
+
+
+        <!-- Recent Folders section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="20dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="4dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Recent Folders"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="?attr/colorOnSurface" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvRecentFoldersEmpty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginBottom="8dp"
+            android:text="No recently visited folders"
+            android:textSize="13sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvRecentFolders"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="16dp"
+            android:clipToPadding="false"
+            android:nestedScrollingEnabled="false"
+            android:orientation="horizontal" />
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

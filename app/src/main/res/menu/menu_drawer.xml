@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item android:id="@+id/homeFragment"      android:icon="@drawable/ic_home"     android:title="Home" android:checked="true"/>
+        <item android:id="@+id/explorerFragment"  android:icon="@drawable/ic_folder"   android:title="File Explorer"/>
+        <item android:id="@+id/searchFragment"    android:icon="@drawable/ic_search"   android:title="Search"/>
+        <item android:id="@+id/bookmarksFragment" android:icon="@drawable/ic_bookmark" android:title="Bookmarks"/>
+        <item android:id="@+id/toolsFragment"     android:icon="@drawable/ic_tune"     android:title="Tools"/>
+    </group>
+    <item android:title="Network &amp; Sharing">
+        <menu>
+            <item android:id="@+id/networkBrowserFragment" android:icon="@drawable/ic_menu_directions" android:title="Network Browser"/>
+            <item android:id="@+id/ftpServerFragment"      android:icon="@drawable/ic_storage"         android:title="FTP Server"/>
+            <item android:id="@+id/wifiDirectFragment"     android:icon="@drawable/ic_share"           android:title="Wi-Fi Direct Share"/>
+        </menu>
+    </item>
+    <item android:title="Storage">
+        <menu>
+            <item android:id="@+id/storageAnalysisFragment" android:icon="@drawable/ic_storage"   android:title="Storage Analysis"/>
+            <item android:id="@+id/secureVaultFragment"     android:icon="@drawable/ic_lock_silent_mode_off" android:title="Secure Vault"/>
+            <item android:id="@+id/dualPaneFragment"        android:icon="@drawable/ic_view_list"  android:title="Dual Pane View"/>
+            <item android:id="@+id/cloudStorageFragment"    android:icon="@drawable/ic_menu_gallery" android:title="Cloud Storage"/>
+        </menu>
+    </item>
+    <item android:title="Apps &amp; Files">
+        <menu>
+            <item android:id="@+id/appManagerFragment" android:icon="@drawable/ic_file_apk" android:title="App Manager"/>
+        </menu>
+    </item>
+    <item android:title="Other">
+        <menu>
+            <item android:id="@+id/settingsFragment" android:icon="@drawable/ic_settings" android:title="Settings"/>
+        </menu>
+    </item>
+</menu>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+
+    <!-- Locked state -->
+    <LinearLayout
+        android:id="@+id/layoutVaultLocked"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
+
+        <ImageView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:src="@drawable/ic_lock_silent_mode_off"
+            android:layout_marginBottom="24dp"
+            app:tint="?attr/colorPrimary"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Secure Vault"
+            android:textAppearance="?attr/textAppearanceHeadlineMedium"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Your encrypted vault is locked.\nAuthenticate to access your private files."
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:gravity="center"
+            android:layout_marginBottom="32dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUnlock"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Unlock Vault"
+            app:icon="@drawable/ic_lock_silent_mode_off"/>
+
+    </LinearLayout>
+
+    <!-- Unlocked state -->
+    <LinearLayout
+        android:id="@+id/layoutVaultContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Vault Contents"
+                android:textAppearance="?attr/textAppearanceTitleMedium"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnImport"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Import"
+                android:layout_marginEnd="8dp"/>
+
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/progressVault"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:indeterminate="true"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/tvVaultEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="32dp"
+            android:gravity="center"
+            android:text="Vault is empty.\nImport files to encrypt and store them here."
+            android:textAlignment="center"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvVaultFiles"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingBottom="80dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:gravity="end"
+            android:background="?attr/colorSurfaceVariant">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExportSelected"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Export Selected"
+                android:layout_marginEnd="8dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDeleteSelected"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Delete Selected"
+                app:strokeColor="?attr/colorError"
+                android:textColor="?attr/colorError"/>
+
+        </LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>

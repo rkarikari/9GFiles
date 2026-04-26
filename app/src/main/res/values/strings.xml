@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">9G Files</string>
+    <string name="app_description">A professional, feature-rich file manager by RadioZport</string>
+    <string name="app_copyright">Copyright &#169; R.N.K 9G5AR RadioZport</string>
+    <!-- app_version is read at runtime from PackageManager so build.gradle is the single source of truth -->
+    <string name="app_organization">RadioZport</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_files">Files</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_bookmarks">Bookmarks</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_recent">Recent Files</string>
+    <string name="nav_storage">Storage</string>
+
+    <!-- Actions -->
+    <string name="action_open">Open</string>
+    <string name="action_open_with">Open With…</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_cut">Cut</string>
+    <string name="action_paste">Paste</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_rename">Rename</string>
+    <string name="action_share">Share</string>
+    <string name="action_compress">Compress to ZIP</string>
+    <string name="action_extract">Extract Here</string>
+    <string name="action_bookmark">Add Bookmark</string>
+    <string name="action_remove_bookmark">Remove Bookmark</string>
+    <string name="action_details">Properties</string>
+    <string name="action_select_all">Select All</string>
+    <string name="action_sort">Sort</string>
+    <string name="action_search">Search</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_new">New</string>
+    <string name="action_new_folder">New Folder</string>
+    <string name="action_new_file">New File</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_create">Create</string>
+    <string name="action_rename_confirm">Rename</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_delete_title">Delete %1$d item(s)?</string>
+    <string name="dialog_delete_message">This action cannot be undone.</string>
+    <string name="dialog_rename_title">Rename</string>
+    <string name="dialog_create_title">Create New</string>
+    <string name="dialog_create_folder">Folder</string>
+    <string name="dialog_create_file">File</string>
+    <string name="dialog_compress_title">Compress Files</string>
+    <string name="dialog_sort_title">Sort By</string>
+    <string name="dialog_details_title">Properties</string>
+
+    <!-- Messages -->
+    <string name="msg_empty_folder">This folder is empty</string>
+    <string name="msg_no_bookmarks">No bookmarks yet</string>
+    <string name="msg_no_recent">No recent files</string>
+    <string name="msg_search_hint">Search files and folders…</string>
+    <string name="msg_paste_items">Paste %1$d item(s) here</string>
+    <string name="msg_move_items">Move %1$d item(s) here</string>
+    <string name="msg_copied">Copied %1$d item(s) successfully</string>
+    <string name="msg_moved">Moved %1$d item(s) successfully</string>
+    <string name="msg_deleted">Deleted %1$d item(s) successfully</string>
+    <string name="msg_renamed">Renamed to %1$s</string>
+    <string name="msg_folder_created">Folder \'%1$s\' created</string>
+    <string name="msg_compressed">Archive created: %1$s</string>
+    <string name="msg_extracted">Extracted to %1$s</string>
+    <string name="msg_no_app">No app found to open this file</string>
+    <string name="msg_permission_required">Storage permission required</string>
+    <string name="msg_permission_rationale">9G Files needs access to manage all files on your device.</string>
+
+    <!-- Settings -->
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">System Default</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_view">View</string>
+    <string name="settings_show_hidden">Show Hidden Files</string>
+    <string name="settings_show_extensions">Show File Extensions</string>
+    <string name="settings_folders_first">Folders First</string>
+    <string name="settings_grid_columns">Grid Columns</string>
+    <string name="settings_thumbnail_quality">Thumbnail Quality</string>
+    <string name="settings_behavior">Behavior</string>
+    <string name="settings_confirm_delete">Confirm Before Delete</string>
+    <string name="settings_vibrate">Vibrate on Actions</string>
+    <string name="settings_double_tap_back">Double-tap Back to Exit</string>
+    <string name="settings_storage">Storage</string>
+    <string name="settings_clear_recent">Clear Recent Files History</string>
+
+    <!-- Sort options -->
+    <string name="sort_name_asc">Name (A → Z)</string>
+    <string name="sort_name_desc">Name (Z → A)</string>
+    <string name="sort_size_asc">Size (Smallest first)</string>
+    <string name="sort_size_desc">Size (Largest first)</string>
+    <string name="sort_date_asc">Date (Oldest first)</string>
+    <string name="sort_date_desc">Date (Newest first)</string>
+    <string name="sort_type_asc">Type (A → Z)</string>
+    <string name="sort_type_desc">Type (Z → A)</string>
+    <string name="sort_ext_asc">Extension (A → Z)</string>
+    <string name="sort_ext_desc">Extension (Z → A)</string>
+
+    <!-- Storage -->
+    <string name="storage_internal">Internal Storage</string>
+    <string name="storage_external">SD Card</string>
+    <string name="storage_free">%1$s free</string>
+
+    <!-- Quick access -->
+    <string name="quick_downloads">Downloads</string>
+    <string name="quick_camera">Camera</string>
+    <string name="quick_documents">Documents</string>
+    <string name="quick_music">Music</string>
+
+    <!-- File categories -->
+    <string name="category_images">Images</string>
+    <string name="category_videos">Videos</string>
+    <string name="category_audio">Audio</string>
+    <string name="category_documents">Documents</string>
+    <string name="category_archives">Archives</string>
+    <string name="category_apks">APKs</string>
+
+    <!-- Recycle Bin -->
+    <string name="recycle_bin">Recycle Bin</string>
+    <string name="empty_trash">Empty Trash</string>
+    <string name="restore">Restore</string>
+    <string name="trash_empty">Trash is empty</string>
+    <string name="trash_size">Trash: %1$s</string>
+
+    <!-- Batch Rename -->
+    <string name="batch_rename">Batch Rename</string>
+    <string name="prefix">Prefix</string>
+    <string name="suffix">Suffix</string>
+    <string name="counter">Counter</string>
+    <string name="keep_extension">Keep file extension</string>
+    <string name="rename_preview">Preview</string>
+
+    <!-- Search -->
+    <string name="search_history">Recent Searches</string>
+    <string name="clear_history">Clear History</string>
+    <string name="search_regex">Regex</string>
+    <string name="date_from">From date</string>
+    <string name="date_to">To date</string>
+
+    <!-- Player -->
+    <string name="play_audio">▶  Play Audio</string>
+    <string name="play_video">▶  Play Video</string>
+    <string name="hide_player">▼  Hide Player</string>
+
+    <!-- Security -->
+    <string name="secure_shred">Securely Shred (3-pass)</string>
+    <string name="shred_confirm">This will overwrite and permanently delete the selected files. This cannot be undone.</string>
+
+    <!-- File ops -->
+    <string name="split_file">Split File…</string>
+    <string name="change_timestamp">Change Timestamp…</string>
+    <string name="pin_to_home">Pin to Home Screen</string>
+
+    <!-- Recent Folders -->
+    <string name="recent_folders">Recent Folders</string>
+    <string name="no_recent_folders">No recently visited folders</string>
+
+    <!-- Disk Map -->
+    <string name="disk_map">Disk Map</string>
+    <string name="disk_map_hint">Tap a tile to see folder details</string>
+
+    <!-- Checksums -->
+    <string name="verify_checksum">Verify Checksum</string>
+    <string name="no_sidecar">No .md5 / .sha256 sidecar found</string>
+
+    <!-- Accent Color -->
+    <string name="accent_color">Accent Color</string>
+    <string name="accent_color_changed">Accent color changed — restart to apply</string>
+
+    <!-- FTP Server -->
+    <string name="ftp_server">FTP Server</string>
+    <string name="ftp_server_subtitle">Serve files to any PC on Wi-Fi</string>
+
+    <!-- App Manager -->
+    <string name="app_manager">App Manager</string>
+    <string name="app_manager_subtitle">Browse, backup and uninstall apps</string>
+
+    <!-- Cloud Storage -->
+    <string name="cloud_storage">Cloud Storage</string>
+    <string name="cloud_storage_subtitle">Google Drive, Dropbox, OneDrive</string>
+
+    <!-- Wi-Fi Direct -->
+    <string name="wifi_direct">Wi-Fi Direct Share</string>
+    <string name="wifi_direct_subtitle">Peer-to-peer file transfer</string>
+
+    <!-- Encrypted ZIP -->
+    <string name="compress_encrypted">Compress to Encrypted ZIP\u2026</string>
+
+</resources>

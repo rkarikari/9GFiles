@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand / accent colors stay the same -->
+    <color name="md_theme_primary">#ADC6FF</color>
+    <color name="md_theme_onPrimary">#002E6B</color>
+    <color name="md_theme_primaryContainer">#0D0D0D</color>
+    <color name="md_theme_onPrimaryContainer">#D6E4FF</color>
+    <color name="md_theme_secondary">#8FCEFF</color>
+    <color name="md_theme_onSecondary">#003351</color>
+    <color name="md_theme_secondaryContainer">#151E26</color>
+    <color name="md_theme_onSecondaryContainer">#C9E6FF</color>
+    <color name="md_theme_tertiary">#4FD8EB</color>
+    <color name="md_theme_onTertiary">#00363D</color>
+    <color name="md_theme_tertiaryContainer">#0D1E22</color>
+    <color name="md_theme_onTertiaryContainer">#97F0FF</color>
+    <color name="md_theme_error">#FFB4AB</color>
+    <color name="md_theme_onError">#690005</color>
+    <color name="md_theme_errorContainer">#1C0000</color>
+    <color name="md_theme_onErrorContainer">#FFDAD6</color>
+
+    <!-- Backgrounds: pure blacks -->
+    <color name="md_theme_background">#000000</color>
+    <color name="md_theme_onBackground">#E2E2E6</color>
+    <color name="md_theme_surface">#080808</color>
+    <color name="md_theme_onSurface">#E2E2E6</color>
+    <color name="md_theme_surfaceVariant">#0E0E0E</color>
+    <color name="md_theme_onSurfaceVariant">#C3C6CF</color>
+    <color name="md_theme_outline">#404040</color>
+    <color name="md_theme_outlineVariant">#1A1A1A</color>
+
+    <color name="on_surface_medium">#99FFFFFF</color>
+    <color name="divider">#33FFFFFF</color>
+
+    <!-- Category icon tints (kept vibrant so icons remain readable) -->
+    <color name="category_image">#F48FB1</color>
+    <color name="category_video">#CE93D8</color>
+    <color name="category_audio">#90CAF9</color>
+    <color name="category_document">#A5D6A7</color>
+    <color name="category_archive">#FFCC80</color>
+    <color name="category_apk">#80CBC4</color>
+
+    <color name="bottom_nav_selected">@color/md_theme_primary</color>
+    <color name="bottom_nav_unselected">@color/md_theme_onSurfaceVariant</color>
+
+    <!-- Quick Access card colors (dark theme — all black shades) -->
+    <color name="qa_downloads_bg">#141414</color>
+    <color name="qa_downloads_stroke">#242424</color>
+    <color name="qa_downloads_icon_bg">#1E1E1E</color>
+    <color name="qa_camera_bg">#141414</color>
+    <color name="qa_camera_stroke">#242424</color>
+    <color name="qa_camera_icon_bg">#1E1E1E</color>
+    <color name="qa_docs_bg">#141414</color>
+    <color name="qa_docs_stroke">#242424</color>
+    <color name="qa_docs_icon_bg">#1E1E1E</color>
+    <color name="qa_music_bg">#141414</color>
+    <color name="qa_music_stroke">#242424</color>
+    <color name="qa_music_icon_bg">#1E1E1E</color>
+
+</resources>

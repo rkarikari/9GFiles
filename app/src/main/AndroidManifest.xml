@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Storage Permissions -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29"
+        tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
+
+    <!-- OTG / USB host — required for USB mass-storage access on supported devices -->
+    <uses-feature android:name="android.hardware.usb.host" android:required="false" />
+
+    <!-- Print — marks the app as print-capable; required=false keeps it
+         installable on devices without a print service. -->
+    <uses-feature android:name="android.software.print" android:required="false" />
+
+    <!-- Network & Sharing -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+
+    <!-- Wi-Fi Direct -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="tiramisu" />
+
+    <!-- Biometric / App Lock -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+    <uses-feature android:name="android.hardware.fingerprint" android:required="false" />
+
+    <!-- App Manager: enumerate all installed packages on Android 11+ (API 30+).
+         Without this, getInstalledPackages() only returns ~4 default-visible packages.
+         Required for file managers / app managers. Declare justification in Play Console. -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
+    <!-- App Manager: required for ACTION_DELETE (uninstall) to be delivered on API 26+.
+         Without this the intent is silently dropped on Android 8 and above. -->
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <!-- Other -->
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:name=".NineGFilesApp"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.FileManagerPro"
+        android:requestLegacyExternalStorage="true"
+        tools:targetApi="31">
+
+        <!-- App metadata reported to Android system -->
+        <meta-data
+            android:name="com.radiozport.ninegfiles.ORGANIZATION"
+            android:value="RadioZport" />
+        <meta-data
+            android:name="com.radiozport.ninegfiles.COPYRIGHT"
+            android:value="R.N.K 9G5AR RadioZport" />
+        <meta-data
+            android:name="com.radiozport.ninegfiles.VERSION"
+            android:value="v1.01" />
+
+        <!--
+            Chromecast / Google Cast framework entry point.
+            The Cast SDK reads this at runtime to find CastOptions (receiver app ID,
+            custom namespace, etc.). Must point to the fully-qualified class name of
+            the OptionsProvider implementation.
+        -->
+        <meta-data
+            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+            android:value="com.radiozport.ninegfiles.CastOptionsProvider" />
+
+        <!-- Splash Screen -->
+        <activity
+            android:name=".ui.splash.SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.FileManagerPro.Splash">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Main Activity -->
+        <activity
+            android:name=".ui.main.MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize"
+            android:launchMode="singleTop">
+            <!-- Open files from other apps -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <!-- Open from Downloads notification -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            </intent-filter>
+        </activity>
+
+        <!-- File Provider for sharing files -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!-- File Copy/Move Background Service -->
+        <service
+            android:name=".workers.FileOperationService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!-- WorkManager Worker -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup" />
+        </provider>
+    </application>
+
+    <!-- Android 11+ package visibility: required to detect installed cloud storage apps -->
+    <queries>
+        <package android:name="com.google.android.apps.docs" />
+        <package android:name="com.dropbox.android" />
+        <!-- com.microsoft.skydrive (OneDrive) intentionally omitted —
+             OneDrive is represented by the Cloud Storage section, not the Drives row. -->
+        <package android:name="com.box.android" />
+        <!-- Enumerate all SAF document providers (catches any cloud app) -->
+        <intent>
+            <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+        </intent>
+    </queries>
+
+</manifest>

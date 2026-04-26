@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:gravity="center_vertical"
+    android:background="?attr/selectableItemBackground">
+
+    <ImageView
+        android:id="@+id/ivAppIcon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="12dp"
+        android:contentDescription="App icon"/>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvAppName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:maxLines="1"
+            android:ellipsize="end"/>
+
+        <TextView
+            android:id="@+id/tvAppPkg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:maxLines="1"
+            android:ellipsize="end"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipSystem"
+            style="@style/Widget.Material3.Chip.Suggestion"
+            android:layout_width="wrap_content"
+            android:layout_height="24dp"
+            android:text="System"
+            android:textSize="10sp"
+            android:visibility="gone"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvAppSize"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceLabelSmall"
+        android:textColor="?attr/colorOnSurfaceVariant"/>
+</LinearLayout>

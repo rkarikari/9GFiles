@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:padding="24dp">
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="Compress Files" android:textAppearance="?attr/textAppearanceHeadlineSmall"
+        android:layout_marginBottom="8dp" />
+    <TextView android:id="@+id/tvItemCount" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginBottom="16dp"
+        android:text="Compressing 1 item(s)" />
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:hint="Archive name" android:layout_marginBottom="24dp">
+        <com.google.android.material.textfield.TextInputEditText android:id="@+id/etArchiveName"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:imeOptions="actionDone" android:inputType="text" android:maxLines="1" />
+    </com.google.android.material.textfield.TextInputLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="end">
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnCancel"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp" android:text="Cancel" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnCompress"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Compress" />
+    </LinearLayout>
+</LinearLayout>

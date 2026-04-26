@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:clipToPadding="false">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="16dp" android:paddingBottom="24dp">
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Storage Tools" android:textAppearance="?attr/textAppearanceHeadlineSmall"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Duplicates -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardDuplicates"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" android:clickable="true" android:focusable="true"
+            app:cardCornerRadius="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="20dp">
+                <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                    android:src="@drawable/ic_content_copy" android:background="@drawable/bg_icon_rounded"
+                    android:padding="8dp" app:tint="@color/category_archive"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="16dp" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Duplicate Finder" android:textAppearance="?attr/textAppearanceTitleMedium"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Find identical files wasting your storage"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"/>
+                </LinearLayout>
+                <ImageView android:layout_width="20dp" android:layout_height="20dp"
+                    android:src="@drawable/ic_chevron_right" app:tint="?attr/colorOnSurfaceVariant"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Large Files -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardLargeFiles"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" android:clickable="true" android:focusable="true"
+            app:cardCornerRadius="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="20dp">
+                <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                    android:src="@drawable/ic_storage" android:background="@drawable/bg_icon_rounded"
+                    android:padding="8dp" app:tint="@color/category_video"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="16dp" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Large Files" android:textAppearance="?attr/textAppearanceTitleMedium"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Find files taking the most space"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"/>
+                </LinearLayout>
+                <ImageView android:layout_width="20dp" android:layout_height="20dp"
+                    android:src="@drawable/ic_chevron_right" app:tint="?attr/colorOnSurfaceVariant"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Storage Analysis -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardStorageAnalysis"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" android:clickable="true" android:focusable="true"
+            app:cardCornerRadius="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="20dp">
+                <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                    android:src="@drawable/ic_storage" android:background="@drawable/bg_icon_rounded"
+                    android:padding="8dp" app:tint="@color/category_image"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="16dp" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Storage Analysis" android:textAppearance="?attr/textAppearanceTitleMedium"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="See storage breakdown by file type"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"/>
+                </LinearLayout>
+                <ImageView android:layout_width="20dp" android:layout_height="20dp"
+                    android:src="@drawable/ic_chevron_right" app:tint="?attr/colorOnSurfaceVariant"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Empty Folders -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardEmptyFolders"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" android:clickable="true" android:focusable="true"
+            app:cardCornerRadius="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="20dp">
+                <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                    android:src="@drawable/ic_folder_open" android:background="@drawable/bg_icon_rounded"
+                    android:padding="8dp" app:tint="@color/category_audio"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="16dp" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Empty Folders" android:textAppearance="?attr/textAppearanceTitleMedium"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Find and delete empty directories"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"/>
+                </LinearLayout>
+                <ImageView android:layout_width="20dp" android:layout_height="20dp"
+                    android:src="@drawable/ic_chevron_right" app:tint="?attr/colorOnSurfaceVariant"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Recent Files -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardRecentFiles"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:clickable="true" android:focusable="true" app:cardCornerRadius="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="20dp">
+                <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                    android:src="@drawable/ic_history" android:background="@drawable/bg_icon_rounded"
+                    android:padding="8dp" app:tint="@color/category_document"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="16dp" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Recently Modified" android:textAppearance="?attr/textAppearanceTitleMedium"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Files changed in the last 7 days"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"/>
+                </LinearLayout>
+                <ImageView android:layout_width="20dp" android:layout_height="20dp"
+                    android:src="@drawable/ic_chevron_right" app:tint="?attr/colorOnSurfaceVariant"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+
+        <!-- Recycle Bin -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardRecycleBin"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="12dp" android:layout_marginBottom="12dp"
+            android:clickable="true" android:focusable="true" app:cardCornerRadius="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="20dp">
+                <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                    android:src="@drawable/ic_delete" android:background="@drawable/bg_icon_rounded"
+                    android:padding="8dp" app:tint="?attr/colorError"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="16dp" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Recycle Bin" android:textAppearance="?attr/textAppearanceTitleMedium"/>
+                    <TextView android:id="@+id/tvTrashSummary"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Deleted files waiting for removal"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"/>
+                </LinearLayout>
+                <ImageView android:layout_width="20dp" android:layout_height="20dp"
+                    android:src="@drawable/ic_chevron_right" app:tint="?attr/colorOnSurfaceVariant"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Storage Disk Map (Treemap) -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardDiskMap"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" android:clickable="true" android:focusable="true"
+            app:cardCornerRadius="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="20dp">
+                <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                    android:src="@drawable/ic_storage" android:background="@drawable/bg_icon_rounded"
+                    android:padding="8dp" app:tint="@color/category_apk"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="16dp" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Disk Map" android:textAppearance="?attr/textAppearanceTitleMedium"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Visual treemap of what is using space"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"/>
+                </LinearLayout>
+                <ImageView android:layout_width="20dp" android:layout_height="20dp"
+                    android:src="@drawable/ic_chevron_right" app:tint="?attr/colorOnSurfaceVariant"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ── New Features Divider ─────────────────────────── -->
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"/>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Security &amp; Privacy"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"
+            android:layout_marginBottom="16dp" android:layout_marginTop="8dp"/>
+
+        <!-- Secure Vault -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardSecureVault"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" android:clickable="true" android:focusable="true"
+            app:cardCornerRadius="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="20dp">
+                <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                    android:src="@drawable/ic_lock_silent_mode_off"
+                    android:background="@drawable/bg_icon_rounded"
+                    android:padding="8dp" app:tint="?attr/colorPrimary"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="16dp" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Secure Vault" android:textAppearance="?attr/textAppearanceTitleMedium"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="AES-256 encrypted private storage"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"/>
+                </LinearLayout>
+                <ImageView android:layout_width="20dp" android:layout_height="20dp"
+                    android:src="@drawable/ic_chevron_right" app:tint="?attr/colorOnSurfaceVariant"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ── Connectivity Divider ──────────────────────────── -->
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"/>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Connectivity"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"
+            android:layout_marginBottom="16dp" android:layout_marginTop="8dp"/>
+
+        <!-- Network Browser -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardNetwork"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" android:clickable="true" android:focusable="true"
+            app:cardCornerRadius="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="20dp">
+                <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                    android:src="@drawable/ic_download"
+                    android:background="@drawable/bg_icon_rounded"
+                    android:padding="8dp" app:tint="@color/category_archive"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="16dp" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Network Browser" android:textAppearance="?attr/textAppearanceTitleMedium"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="FTP · WebDAV · SMB · Cloud"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"/>
+                </LinearLayout>
+                <ImageView android:layout_width="20dp" android:layout_height="20dp"
+                    android:src="@drawable/ic_chevron_right" app:tint="?attr/colorOnSurfaceVariant"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ── Power User Divider ────────────────────────────── -->
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"/>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Power User"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"
+            android:layout_marginBottom="16dp" android:layout_marginTop="8dp"/>
+
+        <!-- FTP Server -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardFtpServer"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" android:clickable="true" android:focusable="true"
+            app:cardCornerRadius="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="20dp">
+                <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                    android:src="@drawable/ic_storage"
+                    android:background="@drawable/bg_icon_rounded"
+                    android:padding="8dp" app:tint="@color/category_video"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="16dp" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="FTP Server" android:textAppearance="?attr/textAppearanceTitleMedium"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Serve files to any PC on Wi-Fi"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"/>
+                </LinearLayout>
+                <ImageView android:layout_width="20dp" android:layout_height="20dp"
+                    android:src="@drawable/ic_chevron_right" app:tint="?attr/colorOnSurfaceVariant"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- App Manager -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardAppManager"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" android:clickable="true" android:focusable="true"
+            app:cardCornerRadius="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="20dp">
+                <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                    android:src="@drawable/ic_file_apk"
+                    android:background="@drawable/bg_icon_rounded"
+                    android:padding="8dp" app:tint="@color/category_apk"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="16dp" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="App Manager" android:textAppearance="?attr/textAppearanceTitleMedium"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Browse, backup and uninstall apps"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"/>
+                </LinearLayout>
+                <ImageView android:layout_width="20dp" android:layout_height="20dp"
+                    android:src="@drawable/ic_chevron_right" app:tint="?attr/colorOnSurfaceVariant"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Dual-Pane View -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardDualPane"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" android:clickable="true" android:focusable="true"
+            app:cardCornerRadius="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="20dp">
+                <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                    android:src="@drawable/ic_view_list"
+                    android:background="@drawable/bg_icon_rounded"
+                    android:padding="8dp" app:tint="@color/category_apk"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="16dp" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Dual-Pane View" android:textAppearance="?attr/textAppearanceTitleMedium"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Browse two folders side by side"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"/>
+                </LinearLayout>
+                <ImageView android:layout_width="20dp" android:layout_height="20dp"
+                    android:src="@drawable/ic_chevron_right" app:tint="?attr/colorOnSurfaceVariant"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

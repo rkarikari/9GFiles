@@ -1,0 +1,177 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.google.devtools.ksp'
+    id 'kotlin-parcelize'
+}
+
+android {
+    namespace 'com.radiozport.ninegfiles'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.radiozport.ninegfiles"
+        minSdk 26
+        targetSdk 35
+        versionCode 9
+        versionName "1.08"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        vectorDrawables {
+            useSupportLibrary true
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            android.applicationVariants.all { variant ->
+                variant.outputs.all { output ->
+                    outputFileName = "9GFiles_v${defaultConfig.versionName}_release.apk"
+                }
+            }
+        }
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    buildFeatures {
+        viewBinding true
+        dataBinding true
+    }
+
+    packaging {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+            excludes += 'META-INF/DEPENDENCIES'
+            excludes += 'META-INF/LICENSE'
+            excludes += 'META-INF/LICENSE.txt'
+            excludes += 'META-INF/NOTICE'
+            excludes += 'META-INF/NOTICE.txt'
+        }
+    }
+}
+
+dependencies {
+    // AndroidX Core
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.documentfile:documentfile:1.0.1'
+    implementation 'androidx.activity:activity-ktx:1.8.2'
+    implementation 'androidx.fragment:fragment-ktx:1.6.2'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+
+    // Material Design 3
+    implementation 'com.google.android.material:material:1.11.0'
+
+    // Navigation Component
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.7.6'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.7.6'
+
+    // Lifecycle (ViewModel, LiveData, Coroutines)
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
+
+    // Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
+
+    // Room Database (recent files, bookmarks, tags)
+    implementation 'androidx.room:room-runtime:2.7.0'
+    implementation 'androidx.room:room-ktx:2.7.0'
+    ksp 'androidx.room:room-compiler:2.7.0'
+
+    // WorkManager (background operations)
+    implementation 'androidx.work:work-runtime-ktx:2.9.0'
+
+    // Preferences DataStore
+    implementation 'androidx.datastore:datastore-preferences:1.0.0'
+
+    // GridLayout
+    implementation 'androidx.gridlayout:gridlayout:1.0.0'
+
+    // RecyclerView + DiffUtil
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.recyclerview:recyclerview-selection:1.1.0'
+
+    // Glide (image thumbnails)
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    ksp 'com.github.bumptech.glide:compiler:4.16.0'
+
+    // Apache Commons Compress (zip/tar operations)
+    implementation 'org.apache.commons:commons-compress:1.25.0'
+
+    // Apache Commons Net (FTP client for Network Browser)
+    implementation 'commons-net:commons-net:3.10.0'
+
+    // SMB / Windows Share support
+    implementation 'eu.agno3.jcifs:jcifs-ng:2.1.10'
+
+    // SFTP support via JSch
+    implementation 'com.github.mwiede:jsch:0.2.17'
+
+    // Password-protected ZIP
+    implementation 'net.lingala.zip4j:zip4j:2.11.5'
+
+    // SLF4J Android binding — satisfies the slf4j-api dependency pulled in by
+    // jcifs-ng and jsch; without this R8 fails on missing StaticLoggerBinder
+    implementation 'org.slf4j:slf4j-android:1.7.36'
+
+    // Biometric authentication (App Lock + Vault)
+    implementation 'androidx.biometric:biometric:1.2.0-alpha05'
+
+    // Encrypted SharedPreferences (AppLockManager PIN storage)
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+
+    // ExifInterface (EXIF Viewer — zero new transitive deps)
+    implementation 'androidx.exifinterface:exifinterface:1.3.7'
+
+    // SlidingPaneLayout (Dual-Pane view)
+    implementation 'androidx.slidingpanelayout:slidingpanelayout:1.2.0'
+
+    // Markwon (Markdown preview — richer than regex renderer)
+    implementation 'io.noties.markwon:core:4.6.2'
+
+    // Palette (extract dominant color from images)
+    implementation 'androidx.palette:palette-ktx:1.0.0'
+
+    // Splash Screen
+    implementation 'androidx.core:core-splashscreen:1.0.1'
+
+    // ViewPager2
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
+
+    // ID3 tag writing (mp3agic — pure-Java, no native code)
+    implementation 'com.mpatric:mp3agic:0.9.1'
+
+    // QR code generation (ZXing core, no Activities needed)
+    implementation 'com.google.zxing:core:3.5.2'
+
+    // ── Google Drive REST API removed ─────────────────────────────────────
+    // Cloud storage is now accessed exclusively through Android's Storage
+    // Access Framework (SAF) via CloudStorageFragment. No API key, OAuth
+    // client ID, or Google Play Services auth dependency is required.
+
+    // Chromecast / Google Cast (MediaRouteButton pulled as transitive dep)
+    implementation 'com.google.android.gms:play-services-cast-framework:21.5.0'
+
+    // Testing
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}

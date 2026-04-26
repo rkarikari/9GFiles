@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- Toolbar row: path + action buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/tvPath"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:maxLines="1"
+            android:ellipsize="start"
+            android:text="No cloud storage connected"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUpload"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="Upload"
+            app:icon="@drawable/ic_add"
+            android:visibility="gone"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDisconnect"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Disconnect"
+            android:visibility="gone"/>
+
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressCloud"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:indeterminate="true"
+        android:visibility="gone"/>
+
+    <!-- File list -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvCloud"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:visibility="gone"/>
+
+    <!-- Empty / connect state -->
+    <LinearLayout
+        android:id="@+id/layoutEmptyState"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/ic_menu_gallery"
+            android:alpha="0.4"
+            android:layout_marginBottom="16dp"
+            android:contentDescription="Cloud"/>
+
+        <TextView
+            android:id="@+id/tvEmpty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Connect to Google Drive, Dropbox, OneDrive, or any SAF-compatible cloud provider."
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:gravity="center"
+            android:layout_marginBottom="24dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnConnectCloud"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Browse Cloud Storage"/>
+    </LinearLayout>
+</LinearLayout>

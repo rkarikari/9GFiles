@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Night-mode overrides for Theme.FileManagerPro.
+        The day theme sets windowLightStatusBar=true (dark icons for light backgrounds).
+        In dark mode we need the opposite: light icons on the dark surface background.
+    -->
+    <style name="Theme.FileManagerPro" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Status bar -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+
+        <!-- Color attribute → night color mappings (must mirror values/themes.xml so that
+             values-night/colors.xml overrides are actually resolved instead of falling back
+             to the Material3 parent theme's built-in grey surfaces) -->
+        <item name="colorPrimary">@color/md_theme_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md_theme_onPrimaryContainer</item>
+        <item name="colorSecondary">@color/md_theme_secondary</item>
+        <item name="colorOnSecondary">@color/md_theme_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md_theme_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md_theme_onSecondaryContainer</item>
+        <item name="colorTertiary">@color/md_theme_tertiary</item>
+        <item name="colorOnTertiary">@color/md_theme_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/md_theme_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/md_theme_onTertiaryContainer</item>
+        <item name="colorError">@color/md_theme_error</item>
+        <item name="colorOnError">@color/md_theme_onError</item>
+        <item name="colorErrorContainer">@color/md_theme_errorContainer</item>
+        <item name="colorOnErrorContainer">@color/md_theme_onErrorContainer</item>
+        <item name="android:colorBackground">@color/md_theme_background</item>
+        <item name="colorSurface">@color/md_theme_surface</item>
+        <item name="colorOnSurface">@color/md_theme_onSurface</item>
+        <!-- FIX: maps colorSurfaceVariant to the night value (#0E0E0E) so the
+             Internal Storage card and Recent Files buttons get a black shade
+             instead of Material3's default grey -->
+        <item name="colorSurfaceVariant">@color/md_theme_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md_theme_onSurfaceVariant</item>
+        <item name="colorOutline">@color/md_theme_outline</item>
+        <item name="colorOutlineVariant">@color/md_theme_outlineVariant</item>
+    </style>
+</resources>

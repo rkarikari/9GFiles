@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginTop="1dp"
+    android:layout_marginBottom="1dp"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="56dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="4dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp">
+
+        <!-- Thumbnail / Icon / Check (stacked in FrameLayout) -->
+        <FrameLayout
+            android:id="@+id/iconContainer"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <ImageView
+                android:id="@+id/ivIcon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_icon_rounded"
+                android:contentDescription="File icon"
+                android:padding="8dp"
+                android:scaleType="centerInside"
+                tools:src="@drawable/ic_folder" />
+
+            <!-- Checkmark when selected -->
+            <ImageView
+                android:id="@+id/ivCheck"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_check_selected"
+                android:src="@drawable/ic_check"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+        </FrameLayout>
+
+        <!-- Name -->
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="4dp"
+            android:ellipsize="middle"
+            android:singleLine="true"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="?attr/colorOnSurface"
+            app:layout_constraintEnd_toStartOf="@id/tvDate"
+            app:layout_constraintStart_toEndOf="@id/iconContainer"
+            app:layout_constraintTop_toTopOf="@id/iconContainer"
+            app:layout_constraintBottom_toTopOf="@id/tvSize"
+            tools:text="Documents" />
+
+        <!-- Size -->
+        <TextView
+            android:id="@+id/tvSize"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:layout_constraintEnd_toStartOf="@id/tvDate"
+            app:layout_constraintStart_toEndOf="@id/iconContainer"
+            app:layout_constraintTop_toBottomOf="@id/tvName"
+            app:layout_constraintBottom_toBottomOf="@id/iconContainer"
+            tools:text="32 items" />
+
+        <!-- Date -->
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:layout_constraintEnd_toStartOf="@id/btnMenu"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Apr 12, 2026" />
+
+        <!-- Bookmark indicator -->
+        <ImageView
+            android:id="@+id/ivBookmark"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginEnd="4dp"
+            android:src="@drawable/ic_bookmark"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnMenu"
+            app:tint="?attr/colorPrimary"
+            tools:visibility="visible" />
+
+        <!-- Context menu button -->
+        <ImageButton
+            android:id="@+id/btnMenu"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="More options"
+            android:src="@drawable/ic_more_vert"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="?attr/colorOnSurfaceVariant" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

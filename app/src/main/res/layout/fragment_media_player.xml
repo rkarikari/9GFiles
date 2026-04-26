@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="?attr/colorSurfaceVariant"
+    android:padding="8dp">
+
+    <!-- Video surface -->
+    <FrameLayout
+        android:id="@+id/surfaceContainer"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="#000000"
+        android:visibility="gone">
+
+        <SurfaceView
+            android:id="@+id/surfaceView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center" />
+    </FrameLayout>
+
+    <!-- Preparing indicator -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progressPrepare"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true" />
+
+    <!-- Error -->
+    <TextView
+        android:id="@+id/tvError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:textColor="?attr/colorError"
+        android:visibility="gone" />
+
+    <!-- Now-playing title -->
+    <TextView
+        android:id="@+id/tvNowPlaying"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="4dp"
+        android:ellipsize="marquee"
+        android:singleLine="true"
+        android:textAppearance="?attr/textAppearanceLabelMedium"
+        android:visibility="gone" />
+
+    <!-- Queue position label  e.g. "2 / 14" -->
+    <TextView
+        android:id="@+id/tvQueuePosition"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:textAppearance="?attr/textAppearanceLabelSmall"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:visibility="gone" />
+
+    <!-- Player controls -->
+    <LinearLayout
+        android:id="@+id/playerControls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- Seek bar row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
+
+            <TextView
+                android:id="@+id/tvCurrentTime"
+                android:layout_width="44dp"
+                android:layout_height="wrap_content"
+                android:text="0:00"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:gravity="end" />
+
+            <SeekBar
+                android:id="@+id/seekBar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/tvTotalTime"
+                android:layout_width="44dp"
+                android:layout_height="wrap_content"
+                android:text="0:00"
+                android:textAppearance="?attr/textAppearanceLabelSmall" />
+        </LinearLayout>
+
+        <!-- Button row: Prev · Rewind · Play · FF · Next · Cast -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingBottom="8dp">
+
+            <ImageButton
+                android:id="@+id/btnPrevious"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_media_previous"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Previous track" />
+
+            <ImageButton
+                android:id="@+id/btnRewind"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_media_rew"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Rewind 10s" />
+
+            <ImageButton
+                android:id="@+id/btnPlay"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@android:drawable/ic_media_play"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Play / Pause" />
+
+            <ImageButton
+                android:id="@+id/btnFastForward"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_media_ff"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Fast-forward 10s" />
+
+            <ImageButton
+                android:id="@+id/btnNext"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_media_next"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Next track" />
+
+            <!-- Cast button — lights up when Cast devices are on the same Wi-Fi -->
+            <androidx.mediarouter.app.MediaRouteButton
+                android:id="@+id/btnCast"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="8dp"
+                android:mediaRouteTypes="user"
+                android:contentDescription="Cast to TV" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

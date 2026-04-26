@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/tvCombineTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceTitleLarge"
+        android:text="Combine Parts"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:id="@+id/tvCombineParts"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/tvCombineOutput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/tvCombineError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/colorError"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        android:visibility="gone"
+        android:layout_marginBottom="8dp"/>
+
+    <ProgressBar
+        android:id="@+id/progressCombine"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/tvCombineProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceLabelSmall"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:visibility="gone"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginTop="16dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCombineCancel"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancel"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCombine"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Combine"/>
+    </LinearLayout>
+</LinearLayout>

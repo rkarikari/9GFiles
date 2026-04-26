@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Create ZIP Archive"
+        android:textAppearance="?attr/textAppearanceTitleLarge"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:id="@+id/tvFileCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Archive name -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilArchiveName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Archive name"
+        android:layout_marginBottom="12dp"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etArchiveName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Encrypt toggle -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Password protect (AES-256)"
+            android:textAppearance="?attr/textAppearanceBodyLarge"/>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchEncrypt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <!-- Password fields (visible when toggle is on) -->
+    <LinearLayout
+        android:id="@+id/layoutPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Password"
+            android:layout_marginBottom="10dp"
+            app:endIconMode="password_toggle"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilPasswordConfirm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Confirm password"
+            android:layout_marginBottom="12dp"
+            app:endIconMode="password_toggle"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPasswordConfirm"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"/>
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:indeterminate="true"
+        android:visibility="gone"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Action buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="Cancel"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCreate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Create ZIP"/>
+    </LinearLayout>
+</LinearLayout>

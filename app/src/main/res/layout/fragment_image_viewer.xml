@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="#000000">
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent" android:layout_height="match_parent" />
+
+    <!-- Top overlay -->
+    <LinearLayout android:id="@+id/topOverlay"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:background="#AA000000" android:orientation="horizontal"
+        android:gravity="center_vertical" android:paddingTop="32dp"
+        android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingBottom="8dp">
+
+        <ImageButton android:id="@+id/btnClose"
+            android:layout_width="48dp" android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_close" app:tint="@android:color/white" />
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="8dp">
+            <TextView android:id="@+id/tvTitle" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:textColor="@android:color/white"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:ellipsize="middle" android:maxLines="1" android:text="image.jpg" />
+            <TextView android:id="@+id/tvDetails" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:textColor="#CCFFFFFF"
+                android:textAppearance="?attr/textAppearanceLabelSmall" android:text="2.1 MB" />
+        </LinearLayout>
+
+        <TextView android:id="@+id/tvCounter" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:textColor="@android:color/white"
+            android:textAppearance="?attr/textAppearanceLabelMedium" android:text="1 / 12" />
+
+    </LinearLayout>
+
+    <!-- Bottom overlay -->
+    <LinearLayout android:id="@+id/bottomOverlay"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#AA000000" android:orientation="horizontal"
+        android:gravity="center" android:padding="16dp"
+        android:paddingBottom="32dp">
+
+        <ImageButton android:id="@+id/btnShare"
+            android:layout_width="56dp" android:layout_height="56dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_content_copy" app:tint="@android:color/white"
+            android:layout_marginEnd="32dp" />
+
+        <ImageButton android:id="@+id/btnSaveAs"
+            android:layout_width="56dp" android:layout_height="56dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_save" app:tint="@android:color/white"
+            android:layout_marginEnd="32dp"
+            android:contentDescription="Save As" />
+
+        <ImageButton android:id="@+id/btnPrint"
+            android:layout_width="56dp" android:layout_height="56dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_menu_agenda" app:tint="@android:color/white"
+            android:layout_marginEnd="32dp"
+            android:contentDescription="Print" />
+
+        <!-- Cast button — casts the current image to a Chromecast device -->
+        <ImageButton android:id="@+id/btnCast"
+            android:layout_width="56dp" android:layout_height="56dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_cast"
+            android:layout_marginEnd="32dp"
+            android:contentDescription="Cast to TV" />
+
+        <ImageButton android:id="@+id/btnDelete"
+            android:layout_width="56dp" android:layout_height="56dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_delete" app:tint="#FF6B6B" />
+
+    </LinearLayout>
+
+</FrameLayout>

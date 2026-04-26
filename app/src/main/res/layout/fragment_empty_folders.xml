@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="?attr/colorSurface">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:padding="16dp" android:gravity="center_vertical">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:id="@+id/tvStatus"
+            android:text="Tap Scan to find empty folders"
+            android:textAppearance="?attr/textAppearanceLabelLarge"/>
+        <ImageButton
+            android:id="@+id/btnSwitchDrive"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="4dp"
+            android:src="@drawable/ic_storage"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="?attr/colorOnSurface"
+            android:contentDescription="Switch drive" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnScan"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp" android:text="Scan" app:icon="@drawable/ic_search"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnDeleteAll"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Delete All" android:enabled="false"
+            app:icon="@drawable/ic_delete"/>
+    </LinearLayout>
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progressBar" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:indeterminate="true" android:visibility="gone"/>
+
+    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvFolders"
+            android:layout_width="match_parent" android:layout_height="match_parent"
+            android:clipToPadding="false" android:paddingBottom="16dp"/>
+        <LinearLayout android:id="@+id/emptyView"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="center" android:gravity="center"
+            android:orientation="vertical" android:padding="32dp" android:visibility="gone">
+            <ImageView android:layout_width="64dp" android:layout_height="64dp"
+                android:src="@drawable/ic_folder_open" android:alpha="0.3"
+                app:tint="?attr/colorOnSurface"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" android:text="No empty folders found"
+                android:textAppearance="?attr/textAppearanceBodyLarge" android:alpha="0.6"/>
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

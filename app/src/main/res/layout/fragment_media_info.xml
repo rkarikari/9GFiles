@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:paddingBottom="80dp">
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:textColor="?attr/colorError"
+            android:visibility="gone" />
+
+        <!-- Header card: art / icon + title + artist + format chip -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Album art / video thumbnail -->
+                <ImageView
+                    android:id="@+id/ivArtwork"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone"
+                    tools:src="@drawable/ic_file_audio"
+                    tools:visibility="visible" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="20dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:id="@+id/ivIcon"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/bg_icon_rounded"
+                        android:padding="10dp"
+                        android:scaleType="centerInside"
+                        tools:src="@drawable/ic_file_audio" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvTitle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?attr/textAppearanceTitleLarge"
+                            android:ellipsize="end"
+                            android:maxLines="2"
+                            tools:text="Track Title" />
+
+                        <TextView
+                            android:id="@+id/tvArtist"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:visibility="gone"
+                            tools:text="Artist Name"
+                            tools:visibility="visible" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipFormat"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="6dp"
+                                tools:text="MP3" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipDuration"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                tools:text="3:42" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Tags card (audio: ID3; video: title/description) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardTags"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tags"
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Album -->
+                <LinearLayout android:id="@+id/rowAlbum"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Album"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvAlbum" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:gravity="end" android:maxWidth="220dp"
+                        android:ellipsize="end" android:maxLines="1" tools:text="Album Name" />
+                </LinearLayout>
+
+                <!-- Album Artist -->
+                <LinearLayout android:id="@+id/rowAlbumArtist"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Album Artist"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvAlbumArtist" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:gravity="end" android:maxWidth="220dp"
+                        android:ellipsize="end" android:maxLines="1" tools:text="Various Artists" />
+                </LinearLayout>
+
+                <!-- Genre -->
+                <LinearLayout android:id="@+id/rowGenre"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Genre"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvGenre" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        tools:text="Rock" />
+                </LinearLayout>
+
+                <!-- Year -->
+                <LinearLayout android:id="@+id/rowYear"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Year"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvYear" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        tools:text="2024" />
+                </LinearLayout>
+
+                <!-- Track -->
+                <LinearLayout android:id="@+id/rowTrack"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Track"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvTrack" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        tools:text="5 / 12" />
+                </LinearLayout>
+
+                <!-- Composer -->
+                <LinearLayout android:id="@+id/rowComposer"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Composer"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvComposer" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:gravity="end" android:maxWidth="220dp"
+                        android:ellipsize="end" android:maxLines="1" tools:text="Composer Name" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Technical card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Technical"
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- MIME type -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Format"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvMimeType" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:fontFamily="monospace" tools:text="audio/flac" />
+                </LinearLayout>
+
+                <!-- Bitrate -->
+                <LinearLayout android:id="@+id/rowBitrate"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Bitrate"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvBitrate" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        tools:text="320 kbps" />
+                </LinearLayout>
+
+                <!-- Sample rate (audio only) -->
+                <LinearLayout android:id="@+id/rowSampleRate"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Sample Rate"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvSampleRate" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        tools:text="44100 Hz" />
+                </LinearLayout>
+
+                <!-- Bits per sample (audio only) -->
+                <LinearLayout android:id="@+id/rowBitsPerSample"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Bit Depth"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvBitsPerSample" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        tools:text="24-bit" />
+                </LinearLayout>
+
+                <!-- Resolution (video only) -->
+                <LinearLayout android:id="@+id/rowResolution"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Resolution"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvResolution" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        tools:text="1920 × 1080" />
+                </LinearLayout>
+
+                <!-- Frame rate (video only) -->
+                <LinearLayout android:id="@+id/rowFrameRate"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Frame Rate"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvFrameRate" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        tools:text="30 fps" />
+                </LinearLayout>
+
+                <!-- Rotation (video only) -->
+                <LinearLayout android:id="@+id/rowRotation"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Rotation"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvRotation" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        tools:text="0°" />
+                </LinearLayout>
+
+                <!-- Duration -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Duration"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvDuration" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        tools:text="3:42" />
+                </LinearLayout>
+
+                <!-- File size -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="File Size"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvFileSize" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        tools:text="8.4 MB" />
+                </LinearLayout>
+
+                <!-- File name -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="File Name"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/tvFileName" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:maxWidth="220dp" android:ellipsize="middle"
+                        android:maxLines="1" tools:text="track01.flac" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Action buttons -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPlay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Play" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnShare"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Share" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEditTags"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="✏️  Edit Tags"
+            android:visibility="gone" />
+
+
+        <!-- Inline media player (hidden until user taps Play) -->
+        <FrameLayout
+            android:id="@+id/playerContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

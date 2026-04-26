@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Simplified Google Drive logo — three solid triangle segments.
+  Do NOT apply app:tint at the ImageView level; the colours are baked in.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Yellow / top segment -->
+    <path
+        android:fillColor="#FBBC04"
+        android:pathData="M12,3 L7,12 L17,12 Z" />
+
+    <!-- Blue / right segment -->
+    <path
+        android:fillColor="#4285F4"
+        android:pathData="M17,12 L21.5,20 L12.5,20 Z" />
+
+    <!-- Green / left segment -->
+    <path
+        android:fillColor="#34A853"
+        android:pathData="M7,12 L2.5,20 L11.5,20 Z" />
+
+</vector>

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add Network Connection"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Protocol picker -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Protocol"
+            android:layout_marginBottom="12dp">
+            <AutoCompleteTextView
+                android:id="@+id/spinnerProtocol"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Display name -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilDisplayName"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Connection name"
+            android:layout_marginBottom="12dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDisplayName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionNext"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Host -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilHost"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Host / IP"
+            android:layout_marginBottom="12dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etHost"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textUri"
+                android:imeOptions="actionNext"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Port -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Port"
+            android:layout_marginBottom="12dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPort"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:imeOptions="actionNext"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Remote path -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Remote path (default /)"
+            android:layout_marginBottom="12dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etRemotePath"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="/"
+                android:imeOptions="actionNext"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Anonymous toggle -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Anonymous / no login"
+                android:textAppearance="?attr/textAppearanceBodyMedium"/>
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchAnonymous"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <!-- Credentials (hidden when anonymous) -->
+        <LinearLayout
+            android:id="@+id/layoutCredentials"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Username"
+                android:layout_marginBottom="12dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etUsername"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:imeOptions="actionNext"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Password"
+                android:layout_marginBottom="12dp"
+                app:endIconMode="password_toggle">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword"/>
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:layout_marginTop="8dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancel"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cancel"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnConnect"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Save &amp; Connect"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

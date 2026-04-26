@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/colorSurface">
+
+    <!-- Progress bar (while scanning) -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progressBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:trackCornerRadius="0dp" />
+
+    <!-- Breadcrumb / title row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingStart="16dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:ellipsize="start"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            android:textColor="?attr/colorOnSurface" />
+
+        <ImageButton
+            android:id="@+id/btnSwitchDrive"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="4dp"
+            android:src="@drawable/ic_storage"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="?attr/colorOnSurface"
+            android:contentDescription="Switch drive" />
+
+    </LinearLayout>
+
+    <!-- Treemap fills all remaining space -->
+    <com.radiozport.ninegfiles.ui.tools.TreemapView
+        android:id="@+id/treemapView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:visibility="gone" />
+
+    <!-- Info bar at bottom -->
+    <TextView
+        android:id="@+id/tvNodeInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:gravity="center"
+        android:maxLines="2"
+        android:background="?attr/colorSurfaceVariant" />
+
+</LinearLayout>

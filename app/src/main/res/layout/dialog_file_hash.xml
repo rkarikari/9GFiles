@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp"
+    android:paddingTop="20dp"
+    android:paddingBottom="8dp">
+
+    <!-- Title row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <ImageView
+            android:id="@+id/ivFileIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_icon_rounded"
+            android:padding="6dp"
+            android:scaleType="centerInside" />
+
+        <TextView
+            android:id="@+id/tvFileName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:ellipsize="middle"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            android:textColor="?attr/colorOnSurface" />
+
+    </LinearLayout>
+
+    <!-- Progress bar (shown while computing) -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progressHash"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:layout_marginBottom="12dp"
+        app:trackCornerRadius="2dp" />
+
+    <!-- Hash cards (shown after computation) -->
+    <LinearLayout
+        android:id="@+id/hashesGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- MD5 card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            app:cardBackgroundColor="?attr/colorSurfaceVariant"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="MD5"
+                        android:textAppearance="?attr/textAppearanceLabelMedium"
+                        android:textColor="?attr/colorPrimary" />
+
+                    <ImageButton
+                        android:id="@+id/btnCopyMd5"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_content_copy"
+                        android:contentDescription="Copy MD5"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvMd5"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:textSize="12sp"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textIsSelectable="true"
+                    android:lineSpacingMultiplier="1.2" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- SHA-1 card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            app:cardBackgroundColor="?attr/colorSurfaceVariant"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="SHA-1"
+                        android:textAppearance="?attr/textAppearanceLabelMedium"
+                        android:textColor="?attr/colorPrimary" />
+
+                    <ImageButton
+                        android:id="@+id/btnCopySha1"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_content_copy"
+                        android:contentDescription="Copy SHA-1"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvSha1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:textSize="12sp"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textIsSelectable="true"
+                    android:lineSpacingMultiplier="1.2" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- SHA-256 card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            app:cardBackgroundColor="?attr/colorSurfaceVariant"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="SHA-256"
+                        android:textAppearance="?attr/textAppearanceLabelMedium"
+                        android:textColor="?attr/colorPrimary" />
+
+                    <ImageButton
+                        android:id="@+id/btnCopySha256"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_content_copy"
+                        android:contentDescription="Copy SHA-256"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvSha256"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:textSize="12sp"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textIsSelectable="true"
+                    android:lineSpacingMultiplier="1.2" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Verify result -->
+        <TextView
+            android:id="@+id/tvVerifyResult"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <!-- Close button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnClose"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginTop="4dp"
+        android:text="Close" />
+
+</LinearLayout>

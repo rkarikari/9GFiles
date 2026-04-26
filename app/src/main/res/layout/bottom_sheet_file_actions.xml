@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Drag handle -->
+    <View
+        android:layout_width="32dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp"
+        android:background="#29000000"
+        android:backgroundTint="?attr/colorOnSurfaceVariant" />
+
+    <!-- File header -->
+    <LinearLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp">
+
+        <ImageView
+            android:id="@+id/ivFileIcon"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_icon_rounded"
+            android:padding="6dp"
+            android:scaleType="centerInside"
+            tools:src="@drawable/ic_file_generic" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="10dp">
+
+            <TextView
+                android:id="@+id/tvFileName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="middle"
+                android:maxLines="1"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="android-build-release-signed.apk" />
+
+            <TextView
+                android:id="@+id/tvFileMeta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="36.7 MB · Oct 19, 2025" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Divider under header -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/colorOutlineVariant"/>
+
+    <!-- Scrollable action list -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="12dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- ── Group 1: Primary ── -->
+            <include layout="@layout/item_action_row" android:id="@+id/actionQuickPeek"   tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionOpen"         tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionOpenWith"     tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionShare"        tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionWifiDirect"   tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionPrint"         tools:layout_height="40dp" tools:layout_width="match_parent"/>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="?attr/colorOutlineVariant" android:layout_marginStart="52dp"/>
+
+            <!-- ── Group 2: Edit ── -->
+            <include layout="@layout/item_action_row" android:id="@+id/actionCopy"         tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionCut"          tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionRename"       tools:layout_height="40dp" tools:layout_width="match_parent"/>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="?attr/colorOutlineVariant" android:layout_marginStart="52dp"/>
+
+            <!-- ── Group 3: Archive ── -->
+            <include layout="@layout/item_action_row" android:id="@+id/actionCompress"     tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionExtract"      tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionSplit"        tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionCombine"      tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionEncrypt"      tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionExif"         tools:layout_height="40dp" tools:layout_width="match_parent"/>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="?attr/colorOutlineVariant" android:layout_marginStart="52dp"/>
+
+            <!-- ── Group 4: Info ── -->
+            <include layout="@layout/item_action_row" android:id="@+id/actionProperties"   tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionChecksums"    tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionCopyPath"     tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionTimestamp"    tools:layout_height="40dp" tools:layout_width="match_parent"/>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="?attr/colorOutlineVariant" android:layout_marginStart="52dp"/>
+
+            <!-- ── Group 5: Bookmark / Pin ── -->
+            <include layout="@layout/item_action_row" android:id="@+id/actionBookmark"     tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionPin"          tools:layout_height="40dp" tools:layout_width="match_parent"/>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="?attr/colorOutlineVariant" android:layout_marginStart="52dp"/>
+
+            <!-- ── Group 6: Destructive ── -->
+            <include layout="@layout/item_action_row" android:id="@+id/actionTrash"               tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionDeletePermanently"    tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionShred"               tools:layout_height="40dp" tools:layout_width="match_parent"/>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

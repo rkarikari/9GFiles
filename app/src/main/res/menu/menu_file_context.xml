@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/action_quick_peek" android:title="Quick Look" />
+    <item android:id="@+id/action_open" android:title="Open" />
+    <item android:id="@+id/action_open_with" android:title="Open With…" />
+    <item android:id="@+id/action_share" android:title="Share" />
+    <item android:id="@+id/action_print" android:title="Print" />
+    <item android:id="@+id/action_copy" android:title="Copy" />
+    <item android:id="@+id/action_cut" android:title="Cut (Move)" />
+    <item android:id="@+id/action_paste_here" android:title="Paste Here" />
+    <item android:id="@+id/action_rename" android:title="Rename" />
+    <item android:id="@+id/action_batch_rename" android:title="Batch Rename…" />
+    <item android:id="@+id/action_compress" android:title="Compress to ZIP" />
+    <item android:id="@+id/action_compress_encrypted" android:title="Compress to Encrypted ZIP…" />
+    <item android:id="@+id/action_wifi_direct_send" android:title="Send via Wi-Fi Direct…" />
+    <item android:id="@+id/action_extract" android:title="Extract Here" />
+    <item android:id="@+id/action_split" android:title="Split File…" />
+    <item android:id="@+id/action_combine" android:title="Combine Parts…" />
+    <item android:id="@+id/action_encrypt" android:title="Encrypt / Decrypt…" />
+    <item android:id="@+id/action_exif" android:title="View EXIF…" />
+    <item android:id="@+id/action_bookmark" android:title="Add Bookmark" />
+    <item android:id="@+id/action_home_shortcut" android:title="Pin to Home Screen" />
+    <item android:id="@+id/action_details" android:title="Properties" />
+    <item android:id="@+id/action_timestamp" android:title="Change Timestamp…" />
+    <item android:id="@+id/action_checksums" android:title="Checksums / Verify…" />
+    <item android:id="@+id/action_copy_path" android:title="Copy Path" />
+    <item android:id="@+id/action_delete" android:title="Move to Trash" />
+    <item android:id="@+id/action_delete_permanently" android:title="Delete Permanently" />
+    <item android:id="@+id/action_shred" android:title="Securely Shred (3-pass)" />
+</menu>

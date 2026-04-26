@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="?attr/colorSurface">
+
+    <!-- Archive header bar -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+        android:background="?attr/colorSurfaceVariant"
+        android:gravity="center_vertical" android:paddingStart="12dp" android:paddingEnd="12dp"
+        android:orientation="horizontal">
+
+        <ImageButton android:id="@+id/btnUp"
+            android:layout_width="40dp" android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_chevron_right"
+            android:rotation="180"
+            android:visibility="gone"
+            app:tint="?attr/colorOnSurfaceVariant" />
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:layout_marginStart="4dp" android:orientation="vertical">
+            <TextView android:id="@+id/tvArchiveName"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:ellipsize="middle" android:maxLines="1"
+                android:textColor="?attr/colorOnSurfaceVariant" android:text="archive.zip" />
+            <TextView android:id="@+id/tvCurrentPath"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant" android:alpha="0.7"
+                android:text="/" android:fontFamily="monospace" />
+        </LinearLayout>
+
+        <ImageView android:layout_width="20dp" android:layout_height="20dp"
+            android:src="@drawable/ic_file_archive"
+            app:tint="?attr/colorOnSurfaceVariant" />
+
+    </LinearLayout>
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progressBar"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:indeterminate="true" android:visibility="gone" />
+
+    <TextView android:id="@+id/tvError"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:padding="16dp" android:textColor="?attr/colorError"
+        android:visibility="gone" />
+
+    <TextView android:id="@+id/tvEmpty"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:padding="32dp" android:gravity="center"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:visibility="gone" android:text="Folder is empty" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvEntries"
+        android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" />
+
+</LinearLayout>

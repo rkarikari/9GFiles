@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_view_toggle"
+        android:icon="@drawable/ic_view_list"
+        android:title="Toggle View"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_sort"
+        android:icon="@drawable/ic_sort"
+        android:title="Sort"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/ic_search"
+        android:title="Search"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_more"
+        android:icon="@drawable/ic_more_vert"
+        android:title="More"
+        app:showAsAction="always">
+        <menu>
+            <item android:id="@+id/action_show_hidden" android:title="Show Hidden Files" android:checkable="true" />
+            <item android:id="@+id/action_select_all" android:title="Select All" />
+            <item android:id="@+id/action_paste" android:title="Paste" />
+            <item android:id="@+id/action_new_folder" android:title="New Folder" />
+            <item android:id="@+id/action_settings" android:title="Settings" />
+        </menu>
+    </item>
+
+</menu>

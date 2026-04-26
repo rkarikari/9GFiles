@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment android:id="@+id/homeFragment"
+        android:name="com.radiozport.ninegfiles.ui.home.HomeFragment"
+        android:label="Home" tools:layout="@layout/fragment_home">
+        <action android:id="@+id/action_home_to_explorer" app:destination="@id/explorerFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_search" app:destination="@id/searchFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_storage" app:destination="@id/storageAnalysisFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_image_viewer" app:destination="@id/imageViewerFragment"
+            app:enterAnim="@anim/item_appear" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_media_info" app:destination="@id/mediaInfoFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_pdf_viewer" app:destination="@id/pdfViewerFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_zip_browser" app:destination="@id/zipBrowserFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_apk_info" app:destination="@id/apkInfoFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_text_editor" app:destination="@id/textEditorFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_recycle_bin" app:destination="@id/recycleBinFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_treemap" app:destination="@id/storageTreemapFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_cloud" app:destination="@id/cloudStorageFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <!-- action_home_to_drive removed: Google Drive REST API integration removed -->
+        <action android:id="@+id/action_home_to_epub_reader" app:destination="@id/epubReaderFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_exif_viewer" app:destination="@id/exifViewerFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_wifi_direct" app:destination="@id/wifiDirectFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+    </fragment>
+
+    <fragment android:id="@+id/explorerFragment"
+        android:name="com.radiozport.ninegfiles.ui.explorer.FileExplorerFragment"
+        android:label="Files" tools:layout="@layout/fragment_file_explorer">
+        <action android:id="@+id/action_explorer_to_search" app:destination="@id/searchFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_explorer_to_settings" app:destination="@id/settingsFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_explorer_to_image_viewer" app:destination="@id/imageViewerFragment"
+            app:enterAnim="@anim/item_appear" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_explorer_to_text_editor" app:destination="@id/textEditorFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_explorer_to_epub_reader" app:destination="@id/epubReaderFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_explorer_to_zip_browser" app:destination="@id/zipBrowserFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_explorer_to_pdf_viewer" app:destination="@id/pdfViewerFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_explorer_to_apk_info" app:destination="@id/apkInfoFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_explorer_to_media_info" app:destination="@id/mediaInfoFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_explorer_to_recycle_bin" app:destination="@id/recycleBinFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_explorer_to_exif_viewer" app:destination="@id/exifViewerFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_explorer_to_wifi_direct" app:destination="@id/wifiDirectFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+    </fragment>
+
+    <fragment android:id="@+id/searchFragment"
+        android:name="com.radiozport.ninegfiles.ui.search.SearchFragment"
+        android:label="Search" tools:layout="@layout/fragment_search">
+        <argument android:name="filterType" android:defaultValue="@null"
+            app:argType="string" app:nullable="true"/>
+        <action android:id="@+id/action_search_to_explorer" app:destination="@id/explorerFragment"
+            app:popUpTo="@id/explorerFragment" app:popUpToInclusive="true"/>
+    </fragment>
+
+    <fragment android:id="@+id/bookmarksFragment"
+        android:name="com.radiozport.ninegfiles.ui.bookmarks.BookmarksFragment"
+        android:label="Bookmarks" tools:layout="@layout/fragment_bookmarks">
+        <action android:id="@+id/action_bookmarks_to_explorer" app:destination="@id/explorerFragment"/>
+        <action android:id="@+id/action_bookmarks_to_cloud"    app:destination="@id/cloudStorageFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+    </fragment>
+
+    <fragment android:id="@+id/settingsFragment"
+        android:name="com.radiozport.ninegfiles.ui.settings.SettingsFragment"
+        android:label="Settings" tools:layout="@layout/fragment_settings"/>
+
+    <fragment android:id="@+id/storageAnalysisFragment"
+        android:name="com.radiozport.ninegfiles.ui.storage.StorageAnalysisFragment"
+        android:label="Storage Analysis" tools:layout="@layout/fragment_storage_analysis"/>
+
+    <fragment android:id="@+id/imageViewerFragment"
+        android:name="com.radiozport.ninegfiles.ui.viewer.ImageViewerFragment"
+        android:label="Image Viewer" tools:layout="@layout/fragment_image_viewer">
+        <argument android:name="path" app:argType="string"/>
+    </fragment>
+
+    <fragment android:id="@+id/textEditorFragment"
+        android:name="com.radiozport.ninegfiles.ui.editor.TextEditorFragment"
+        android:label="Text Editor" tools:layout="@layout/fragment_text_editor">
+        <argument android:name="filePath" app:argType="string"/>
+    </fragment>
+
+    <fragment android:id="@+id/epubReaderFragment"
+        android:name="com.radiozport.ninegfiles.ui.viewer.EpubReaderFragment"
+        android:label="eBook Reader">
+        <argument android:name="epubPath" app:argType="string"/>
+    </fragment>
+
+    <fragment android:id="@+id/zipBrowserFragment"
+        android:name="com.radiozport.ninegfiles.ui.viewer.ZipBrowserFragment"
+        android:label="Archive Browser" tools:layout="@layout/fragment_zip_browser">
+        <argument android:name="zipPath" app:argType="string"/>
+    </fragment>
+
+    <fragment android:id="@+id/apkInfoFragment"
+        android:name="com.radiozport.ninegfiles.ui.viewer.ApkInfoFragment"
+        android:label="APK Info" tools:layout="@layout/fragment_apk_info">
+        <argument android:name="apkPath" app:argType="string"/>
+    </fragment>
+
+    <fragment android:id="@+id/pdfViewerFragment"
+        android:name="com.radiozport.ninegfiles.ui.viewer.PdfViewerFragment"
+        android:label="PDF Viewer" tools:layout="@layout/fragment_pdf_viewer">
+        <argument android:name="pdfPath" app:argType="string"/>
+    </fragment>
+
+    <fragment android:id="@+id/mediaInfoFragment"
+        android:name="com.radiozport.ninegfiles.ui.viewer.MediaInfoFragment"
+        android:label="Media Player" tools:layout="@layout/fragment_media_info">
+        <argument android:name="mediaPath" app:argType="string"/>
+    </fragment>
+
+    <fragment android:id="@+id/toolsFragment"
+        android:name="com.radiozport.ninegfiles.ui.tools.ToolsFragment"
+        android:label="Tools" tools:layout="@layout/fragment_tools">
+        <action android:id="@+id/action_tools_to_duplicates" app:destination="@id/duplicateFinderFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_tools_to_large_files" app:destination="@id/largeFilesFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_tools_to_empty_folders" app:destination="@id/emptyFoldersFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_tools_to_recycle_bin" app:destination="@id/recycleBinFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_tools_to_treemap" app:destination="@id/storageTreemapFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_tools_to_vault" app:destination="@id/secureVaultFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_tools_to_network" app:destination="@id/networkBrowserFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_tools_to_dual_pane" app:destination="@id/dualPaneFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_tools_to_ftp_server" app:destination="@id/ftpServerFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_tools_to_app_manager" app:destination="@id/appManagerFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+    </fragment>
+
+    <fragment android:id="@+id/duplicateFinderFragment"
+        android:name="com.radiozport.ninegfiles.ui.tools.DuplicateFinderFragment"
+        android:label="Duplicate Finder" tools:layout="@layout/fragment_duplicate_finder"/>
+
+    <fragment android:id="@+id/largeFilesFragment"
+        android:name="com.radiozport.ninegfiles.ui.tools.LargeFilesFragment"
+        android:label="Large Files" tools:layout="@layout/fragment_large_files"/>
+
+    <fragment android:id="@+id/emptyFoldersFragment"
+        android:name="com.radiozport.ninegfiles.ui.tools.EmptyFoldersFragment"
+        android:label="Empty Folders" tools:layout="@layout/fragment_empty_folders"/>
+
+    <fragment android:id="@+id/tagManagerFragment"
+        android:name="com.radiozport.ninegfiles.ui.tags.FileTagManagerFragment"
+        android:label="Tags" tools:layout="@layout/fragment_tag_manager"/>
+
+    <fragment android:id="@+id/recycleBinFragment"
+        android:name="com.radiozport.ninegfiles.ui.trash.RecycleBinFragment"
+        android:label="Recycle Bin" tools:layout="@layout/fragment_recycle_bin"/>
+
+    <fragment android:id="@+id/storageTreemapFragment"
+        android:name="com.radiozport.ninegfiles.ui.tools.StorageTreemapFragment"
+        android:label="Storage Map" tools:layout="@layout/fragment_storage_treemap">
+        <argument android:name="rootPath" android:defaultValue=""
+            app:argType="string" app:nullable="true"/>
+    </fragment>
+
+    <fragment android:id="@+id/exifViewerFragment"
+        android:name="com.radiozport.ninegfiles.ui.viewer.ExifViewerFragment"
+        android:label="EXIF Viewer" tools:layout="@layout/fragment_exif_viewer">
+        <argument android:name="filePath" android:defaultValue=""
+            app:argType="string"/>
+    </fragment>
+
+    <fragment android:id="@+id/secureVaultFragment"
+        android:name="com.radiozport.ninegfiles.ui.vault.SecureVaultFragment"
+        android:label="Secure Vault" tools:layout="@layout/fragment_secure_vault"/>
+
+    <fragment android:id="@+id/networkBrowserFragment"
+        android:name="com.radiozport.ninegfiles.ui.network.NetworkBrowserFragment"
+        android:label="Network Browser" tools:layout="@layout/fragment_network_browser"/>
+
+    <fragment android:id="@+id/dualPaneFragment"
+        android:name="com.radiozport.ninegfiles.ui.explorer.DualPaneFragment"
+        android:label="Dual-Pane" tools:layout="@layout/fragment_dual_pane"/>
+
+    <fragment android:id="@+id/ftpServerFragment"
+        android:name="com.radiozport.ninegfiles.ui.server.FtpServerFragment"
+        android:label="FTP Server" tools:layout="@layout/fragment_ftp_server"/>
+
+    <fragment android:id="@+id/appManagerFragment"
+        android:name="com.radiozport.ninegfiles.ui.apps.AppManagerFragment"
+        android:label="App Manager" tools:layout="@layout/fragment_app_manager"/>
+
+    <fragment android:id="@+id/cloudStorageFragment"
+        android:name="com.radiozport.ninegfiles.ui.cloud.CloudStorageFragment"
+        android:label="Cloud Storage" tools:layout="@layout/fragment_cloud_storage">
+        <argument android:name="treeUri" android:defaultValue="" app:argType="string"/>
+    </fragment>
+
+    <!-- driveFragment removed: DriveFragment now redirects to cloudStorageFragment -->
+
+    <fragment android:id="@+id/wifiDirectFragment"
+        android:name="com.radiozport.ninegfiles.ui.sharing.WifiDirectFragment"
+        android:label="Wi-Fi Direct Share" tools:layout="@layout/fragment_wifi_direct"/>
+
+</navigation>

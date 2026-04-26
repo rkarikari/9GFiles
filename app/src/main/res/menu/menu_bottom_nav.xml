@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/homeFragment"      android:icon="@drawable/ic_home"     android:title="Home" />
+    <item android:id="@+id/explorerFragment"  android:icon="@drawable/ic_folder"   android:title="Files" />
+    <item android:id="@+id/searchFragment"    android:icon="@drawable/ic_search"   android:title="Search" />
+    <item android:id="@+id/toolsFragment"     android:icon="@drawable/ic_tune"     android:title="Tools" />
+    <item android:id="@+id/bookmarksFragment" android:icon="@drawable/ic_bookmark" android:title="Saved" />
+</menu>
