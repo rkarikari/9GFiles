@@ -4,6 +4,10 @@
 > A powerful file manager that gives you complete control over everything on your phone — without the clutter, limits, or compromises of stock apps.
 
 ---
+## ScreenShots
+
+![Alt text](https://raw.githubusercontent.com/rkarikari/9gfiles/main/images/9gfiles.gif)
+
 
 ## At a Glance
 
