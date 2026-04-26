@@ -30,7 +30,12 @@ class AppPreferences(private val context: Context) {
         val KEY_ACCENT_COLOR = intPreferencesKey("accent_color")
         val KEY_THUMBNAIL_QUALITY = intPreferencesKey("thumbnail_quality")
         val KEY_LIST_DENSITY      = stringPreferencesKey("list_density")   // compact | normal | comfortable
-        val KEY_KEEP_PASTE_BAR    = booleanPreferencesKey("keep_paste_bar") // false = dismiss bar on paste (default)
+        val KEY_KEEP_PASTE_BAR         = booleanPreferencesKey("keep_paste_bar") // false = dismiss bar on paste (default)
+
+        // ── Vault behaviour ───────────────────────────────────────────────
+        val KEY_VAULT_DELETE_ORIGINAL     = booleanPreferencesKey("vault_delete_original")   // default true
+        val KEY_VAULT_RESTORE_ON_EXPORT   = booleanPreferencesKey("vault_restore_on_export") // default true
+        val KEY_VAULT_DELETE_AFTER_EXPORT = booleanPreferencesKey("vault_delete_after_export") // default true
     }
 
     val sortOption: Flow<SortOption> = context.dataStore.data.map { prefs ->
@@ -89,8 +94,32 @@ class AppPreferences(private val context: Context) {
         prefs[KEY_KEEP_PASTE_BAR] ?: false
     }
 
+    val vaultDeleteOriginal: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[KEY_VAULT_DELETE_ORIGINAL] ?: true
+    }
+
+    val vaultRestoreOnExport: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[KEY_VAULT_RESTORE_ON_EXPORT] ?: true
+    }
+
+    val vaultDeleteAfterExport: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[KEY_VAULT_DELETE_AFTER_EXPORT] ?: true
+    }
+
     suspend fun setKeepPasteBar(keep: Boolean) {
         context.dataStore.edit { it[KEY_KEEP_PASTE_BAR] = keep }
+    }
+
+    suspend fun setVaultDeleteOriginal(v: Boolean) {
+        context.dataStore.edit { it[KEY_VAULT_DELETE_ORIGINAL] = v }
+    }
+
+    suspend fun setVaultRestoreOnExport(v: Boolean) {
+        context.dataStore.edit { it[KEY_VAULT_RESTORE_ON_EXPORT] = v }
+    }
+
+    suspend fun setVaultDeleteAfterExport(v: Boolean) {
+        context.dataStore.edit { it[KEY_VAULT_DELETE_AFTER_EXPORT] = v }
     }
 
     suspend fun setSortOption(option: SortOption) {

@@ -33,6 +33,7 @@ import com.radiozport.ninegfiles.databinding.FragmentFileExplorerBinding
 import com.radiozport.ninegfiles.ui.adapters.FileAdapter
 import com.radiozport.ninegfiles.ui.dialogs.*
 import com.radiozport.ninegfiles.ui.viewer.QuickPeekBottomSheet
+import com.radiozport.ninegfiles.ui.vault.SecureVaultFragment
 import androidx.activity.OnBackPressedCallback
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -97,6 +98,12 @@ class FileExplorerFragment : Fragment() {
         setupPasteBar()
         setupSelectionToolbar()
         setupBackNavigation()
+
+        // Refresh automatically when files are deleted by a vault import so the
+        // folder reflects its new state without requiring a manual pull-to-refresh.
+        parentFragmentManager.setFragmentResultListener(
+            SecureVaultFragment.RESULT_IMPORT_COMPLETE, viewLifecycleOwner
+        ) { _, _ -> viewModel.refresh() }
     }
 
     private fun setupRecyclerView() {

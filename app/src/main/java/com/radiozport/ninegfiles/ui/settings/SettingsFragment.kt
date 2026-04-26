@@ -59,6 +59,9 @@ class SettingsFragment : Fragment() {
             binding.switchVibrate.isChecked       = prefs.vibrateOnAction.first()
             binding.switchDoubleTapBack.isChecked = prefs.doubleTapBack.first()
             binding.switchKeepPasteBar.isChecked  = prefs.keepPasteBar.first()
+            binding.switchVaultDeleteOriginal.isChecked    = prefs.vaultDeleteOriginal.first()
+            binding.switchVaultRestoreOnExport.isChecked   = prefs.vaultRestoreOnExport.first()
+            binding.switchVaultDeleteAfterExport.isChecked = prefs.vaultDeleteAfterExport.first()
 
             val quality = prefs.thumbnailQuality.first()
             binding.sliderThumbnailQuality.value = quality.toFloat()
@@ -102,6 +105,15 @@ class SettingsFragment : Fragment() {
         }
         binding.switchKeepPasteBar.setOnCheckedChangeListener { _, c ->
             lifecycleScope.launch { prefs.setKeepPasteBar(c) }
+        }
+        binding.switchVaultDeleteOriginal.setOnCheckedChangeListener { _, c ->
+            lifecycleScope.launch { prefs.setVaultDeleteOriginal(c) }
+        }
+        binding.switchVaultRestoreOnExport.setOnCheckedChangeListener { _, c ->
+            lifecycleScope.launch { prefs.setVaultRestoreOnExport(c) }
+        }
+        binding.switchVaultDeleteAfterExport.setOnCheckedChangeListener { _, c ->
+            lifecycleScope.launch { prefs.setVaultDeleteAfterExport(c) }
         }
         binding.sliderThumbnailQuality.addOnChangeListener { _, value, _ ->
             val q = value.toInt()
