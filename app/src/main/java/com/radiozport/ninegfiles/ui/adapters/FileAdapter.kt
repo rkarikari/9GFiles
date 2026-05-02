@@ -17,6 +17,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.radiozport.ninegfiles.R
 import com.radiozport.ninegfiles.data.model.FileItem
 import com.radiozport.ninegfiles.data.model.FileType
@@ -268,10 +272,13 @@ class FileAdapter(
         val type = item.fileType
 
         // ── Always reset to a clean baseline first ────────────────────────
-        // RecyclerView recycles ViewHolders, so a holder that previously showed
-        // a zero-padded thumbnail would carry that state into the next bind
-        // (e.g. a folder icon), making icons render at inconsistent sizes.
-        // Resetting here guarantees every bind starts from the same state.
+        // (1) Cancel any in-flight Glide request on this ImageView BEFORE
+        //     doing anything else. Without this, a recycled ViewHolder whose
+        //     previous album-art / thumbnail load is still async-pending will
+        //     stamp that stale image onto whichever new item reuses the holder.
+        Glide.with(context).clear(imageView)
+        // (2) Reset padding and scaleType so recycled state never leaks into
+        //     the next bind (thumbnail→icon or vice-versa).
         val defaultPadPx = (8 * context.resources.displayMetrics.density).toInt()
         imageView.setPadding(defaultPadPx, defaultPadPx, defaultPadPx, defaultPadPx)
         imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
@@ -353,25 +360,39 @@ class FileAdapter(
                     return
                 }
                 FileType.AUDIO -> {
-                    val albumArtUri = resolveAudioAlbumArt(context, item.path)
-                    if (albumArtUri != null) {
-                        imageView.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
-                        imageView.setPadding(0, 0, 0, 0)
-                        imageView.imageTintList = null
-                        Glide.with(context)
-                            .load(albumArtUri)
-                            .apply(
-                                RequestOptions()
-                                    .placeholder(R.drawable.ic_file_audio)
-                                    .error(R.drawable.ic_file_audio)
-                                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                                    .override(300, 300)
-                                    .centerCrop()
-                            )
-                            .into(imageView)
-                        return
+                    // Tag the view with the file path so we can detect if the
+                    // ViewHolder has been recycled before the IO work completes.
+                    val expectedPath = item.path
+                    imageView.tag = expectedPath
+                    // MediaMetadataRetriever is blocking I/O — run off main thread.
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val bitmap = extractEmbeddedAudioArt(expectedPath)
+                        withContext(Dispatchers.Main) {
+                            // Bail if this ViewHolder was recycled to a different item.
+                            if (imageView.tag != expectedPath) return@withContext
+                            if (bitmap != null) {
+                                imageView.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+                                imageView.setPadding(0, 0, 0, 0)
+                                imageView.imageTintList = null
+                                Glide.with(context)
+                                    .load(bitmap)
+                                    .apply(
+                                        RequestOptions()
+                                            .placeholder(R.drawable.ic_file_audio)
+                                            .error(R.drawable.ic_file_audio)
+                                            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                            .signature(com.bumptech.glide.signature.ObjectKey(item.file.lastModified()))
+                                            .override(300, 300)
+                                            .centerCrop()
+                                    )
+                                    .into(imageView)
+                            }
+                            // If bitmap == null, the static icon was already set
+                            // at the top of loadFileIcon — nothing more to do.
+                        }
                     }
-                    // fall through to static icon if no album art found
+                    // Static icon is shown immediately as placeholder while IO runs.
+                    // Fall through to the static icon block below.
                 }
                 FileType.APK -> {
                     val apkDrawable = extractApkIcon(context, item.path)
@@ -379,7 +400,6 @@ class FileAdapter(
                         imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
                         imageView.setPadding(0, 0, 0, 0)
                         imageView.imageTintList = null
-                        Glide.with(context).clear(imageView)
                         imageView.setImageDrawable(apkDrawable)
                         return
                     }
@@ -393,7 +413,6 @@ class FileAdapter(
         // Do NOT call setPadding here — the XML layout already defines the
         // correct padding for each view type (6 dp for list, proportional for
         // grid). Overriding it programmatically was shrinking icons to nothing.
-        Glide.with(context).clear(imageView)
         imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
         imageView.setImageResource(getIconForType(type))
 
@@ -433,26 +452,24 @@ class FileAdapter(
     }
 
     /**
-     * Queries MediaStore for the album-art URI of the given audio file path.
-     * Returns null when not indexed or permissions are absent.
+     * Extracts the embedded album-art bitmap directly from the audio file's
+     * ID3 / Vorbis tags using [MediaMetadataRetriever].
+     *
+     * Unlike the MediaStore approach (which groups files by album ID and therefore
+     * returns the same art for every track in the same album), this reads the raw
+     * picture bytes embedded in each individual file, so every track gets its own
+     * unique artwork.
+     *
+     * Returns null if the file has no embedded art or if extraction fails.
      */
-    private fun resolveAudioAlbumArt(context: Context, path: String): Uri? = try {
-        val projection = arrayOf(MediaStore.Audio.Media.ALBUM_ID)
-        val selection  = "${MediaStore.Audio.Media.DATA} = ?"
-        context.contentResolver.query(
-            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            projection, selection, arrayOf(path), null
-        )?.use { cursor ->
-            if (cursor.moveToFirst()) {
-                val albumId = cursor.getLong(
-                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
-                )
-                android.content.ContentUris.withAppendedId(
-                    Uri.parse("content://media/external/audio/albumart"),
-                    albumId
-                )
-            } else null
-        }
+    private fun extractEmbeddedAudioArt(path: String): android.graphics.Bitmap? = try {
+        val retriever = android.media.MediaMetadataRetriever()
+        retriever.setDataSource(path)
+        val bytes = retriever.embeddedPicture
+        retriever.release()
+        if (bytes != null && bytes.isNotEmpty())
+            android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+        else null
     } catch (e: Exception) { null }
 
     /**
