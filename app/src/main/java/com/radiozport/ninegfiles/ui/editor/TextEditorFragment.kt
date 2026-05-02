@@ -56,6 +56,7 @@ class TextEditorFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupToolbar()
         loadFile()
+        applyWordWrap()
 
         binding.webviewPreview?.apply {
             webViewClient = WebViewClient()
@@ -364,6 +365,7 @@ class TextEditorFragment : Fragment() {
         // Show the Preview/Source toggle for .html, .htm, and .md files
         menu.findItem(R.id.action_preview)?.isVisible = supportsPreview
         menu.findItem(R.id.action_preview)?.title = if (isPreviewMode) "Source" else "Preview"
+        menu.findItem(R.id.action_word_wrap)?.title = if (wordWrap) "Word Wrap: On" else "Word Wrap: Off"
         super.onCreateOptionsMenu(menu, inflater)
     }
 
@@ -372,7 +374,156 @@ class TextEditorFragment : Fragment() {
         R.id.action_save        -> { saveFile(); true }
         R.id.action_preview     -> { togglePreview(); true }
         R.id.action_print       -> { printText(); true }
+        R.id.action_word_wrap   -> { toggleWordWrap(); true }
+        R.id.action_go_to_line  -> { showGoToLineDialog(); true }
+        R.id.action_find_replace -> { showFindReplaceDialog(); true }
+        R.id.action_font_size   -> { showFontSizeDialog(); true }
         else -> super.onOptionsItemSelected(item)
+    }
+
+    // ── Word Wrap ──────────────────────────────────────────────────────────────
+
+    private var wordWrap = true
+
+    private fun toggleWordWrap() {
+        wordWrap = !wordWrap
+        binding.editorContent.setHorizontallyScrolling(!wordWrap)
+        requireActivity().invalidateOptionsMenu()
+        Snackbar.make(binding.root, if (wordWrap) "Word wrap on" else "Word wrap off",
+            Snackbar.LENGTH_SHORT).show()
+    }
+
+    private fun applyWordWrap() {
+        binding.editorContent.setHorizontallyScrolling(!wordWrap)
+    }
+
+    // ── Go To Line ────────────────────────────────────────────────────────────
+
+    private fun showGoToLineDialog() {
+        val totalLines = binding.editorContent.lineCount.coerceAtLeast(1)
+        val input = android.widget.EditText(requireContext()).apply {
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            hint = "Line number (1–$totalLines)"
+            setPadding(48, 24, 48, 8)
+        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Go to Line")
+            .setView(input)
+            .setPositiveButton("Go") { _, _ ->
+                val line = input.text.toString().toIntOrNull()?.minus(1) ?: return@setPositiveButton
+                val clampedLine = line.coerceIn(0, totalLines - 1)
+                val layout = binding.editorContent.layout ?: return@setPositiveButton
+                val y = layout.getLineTop(clampedLine)
+                binding.scrollEditor.scrollTo(0, y)
+                // Place cursor at start of that line
+                val offset = layout.getLineStart(clampedLine)
+                binding.editorContent.setSelection(offset)
+                binding.editorContent.requestFocus()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    // ── Find & Replace ────────────────────────────────────────────────────────
+
+    private var findText = ""
+    private var findResultSpans = listOf<android.text.style.BackgroundColorSpan>()
+
+    private fun showFindReplaceDialog() {
+        val view = layoutInflater.inflate(R.layout.dialog_rename, null)  // re-use two-field layout fallback
+        // Build a simple two-field dialog manually
+        val container = android.widget.LinearLayout(requireContext()).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(48, 16, 48, 8)
+        }
+        val etFind = android.widget.EditText(requireContext()).apply {
+            hint = "Find…"
+            setText(findText)
+            setSingleLine(true)
+        }
+        val etReplace = android.widget.EditText(requireContext()).apply {
+            hint = "Replace with…"
+            setSingleLine(true)
+        }
+        container.addView(etFind)
+        container.addView(etReplace)
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Find & Replace")
+            .setView(container)
+            .setNeutralButton("Find All") { _, _ ->
+                findText = etFind.text.toString()
+                highlightAllOccurrences(findText)
+            }
+            .setPositiveButton("Replace All") { _, _ ->
+                if (!isEditing) {
+                    Snackbar.make(binding.root, "Enable Edit mode first", Snackbar.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                val find = etFind.text.toString()
+                val replace = etReplace.text.toString()
+                if (find.isEmpty()) return@setPositiveButton
+                val current = binding.editorContent.text?.toString() ?: ""
+                val updated = current.replace(find, replace)
+                val count = (current.length - current.replace(find, "").length) / find.length
+                binding.editorContent.setText(updated)
+                hasUnsavedChanges = true
+                Snackbar.make(binding.root, "Replaced $count occurrence(s)", Snackbar.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun highlightAllOccurrences(query: String) {
+        val text = binding.editorContent.text ?: return
+        // Clear previous highlights
+        findResultSpans.forEach { text.removeSpan(it) }
+        findResultSpans = emptyList()
+        if (query.isEmpty()) return
+
+        val spans = mutableListOf<android.text.style.BackgroundColorSpan>()
+        val fullText = text.toString()
+        var idx = fullText.indexOf(query, ignoreCase = true)
+        var count = 0
+        while (idx >= 0) {
+            val span = android.text.style.BackgroundColorSpan(0xFFFFD700.toInt()) // gold highlight
+            text.setSpan(span, idx, idx + query.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            spans.add(span)
+            idx = fullText.indexOf(query, idx + 1, ignoreCase = true)
+            count++
+        }
+        findResultSpans = spans
+
+        // Scroll to first match
+        if (spans.isNotEmpty()) {
+            val firstStart = fullText.indexOf(query, ignoreCase = true)
+            val layout = binding.editorContent.layout
+            if (layout != null) {
+                val line = layout.getLineForOffset(firstStart)
+                val y = layout.getLineTop(line)
+                binding.scrollEditor.scrollTo(0, y)
+            }
+        }
+        Snackbar.make(binding.root, "Found $count occurrence(s)", Snackbar.LENGTH_SHORT).show()
+    }
+
+    // ── Font Size ─────────────────────────────────────────────────────────────
+
+    private var currentFontSizeSp = 14
+
+    private fun showFontSizeDialog() {
+        val sizes = arrayOf("10sp", "12sp", "14sp (default)", "16sp", "18sp", "20sp", "24sp")
+        val spValues = intArrayOf(10, 12, 14, 16, 18, 20, 24)
+        val currentIdx = spValues.indexOfFirst { it == currentFontSizeSp }.coerceAtLeast(2)
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Font Size")
+            .setSingleChoiceItems(sizes, currentIdx) { dialog, which ->
+                currentFontSizeSp = spValues[which]
+                binding.editorContent.textSize = currentFontSizeSp.toFloat()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     override fun onDestroyView() { super.onDestroyView(); _binding = null }

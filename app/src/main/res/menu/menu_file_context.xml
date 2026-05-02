@@ -20,6 +20,7 @@
     <item android:id="@+id/action_exif" android:title="View EXIF…" />
     <item android:id="@+id/action_bookmark" android:title="Add Bookmark" />
     <item android:id="@+id/action_home_shortcut" android:title="Pin to Home Screen" />
+    <item android:id="@+id/action_note" android:title="Add / Edit Note…" />
     <item android:id="@+id/action_details" android:title="Properties" />
     <item android:id="@+id/action_timestamp" android:title="Change Timestamp…" />
     <item android:id="@+id/action_checksums" android:title="Checksums / Verify…" />

@@ -39,7 +39,14 @@ class SecureVaultFragment : Fragment() {
     companion object {
         /** Fragment result key broadcast after every successful vault import.
          *  FileExplorerFragment listens for this to auto-refresh its file list. */
+        /** Fragment result key broadcast after every successful vault import. */
         const val RESULT_IMPORT_COMPLETE = "vault_import_complete"
+
+        /** Maximum consecutive wrong PIN entries before a timed lockout. */
+        private const val MAX_PIN_ATTEMPTS = 5
+
+        /** Lockout duration in seconds after too many wrong PIN attempts. */
+        private const val LOCKOUT_SECONDS = 30L
     }
 
     private var _binding: FragmentSecureVaultBinding? = null
@@ -168,18 +175,40 @@ class SecureVaultFragment : Fragment() {
         }
     }
 
-    private fun showPinDialog() {
+    private fun showPinDialog(attemptsSoFar: Int = 0) {
         if (!AppLockManager.isVaultPinSet(requireContext())) { showSetPinDialog(); return }
+
+        // Enforce lockout after MAX_PIN_ATTEMPTS consecutive failures.
+        if (attemptsSoFar >= MAX_PIN_ATTEMPTS) {
+            Snackbar.make(
+                binding.root,
+                "Too many wrong attempts. Try again in ${LOCKOUT_SECONDS}s.",
+                Snackbar.LENGTH_LONG
+            ).show()
+            binding.btnUnlock.isEnabled = false
+            binding.btnUnlock.postDelayed({
+                binding.btnUnlock.isEnabled = true
+            }, LOCKOUT_SECONDS * 1000L)
+            return
+        }
+
+        val remaining = MAX_PIN_ATTEMPTS - attemptsSoFar
         val dialogView = layoutInflater.inflate(R.layout.dialog_encrypt_file, null)
         dialogView.findViewById<View>(R.id.layoutEncryptButtons)?.isVisible = false
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Enter Vault PIN")
+            .setMessage(if (attemptsSoFar > 0) "$remaining attempt(s) remaining" else null)
             .setView(dialogView)
             .setPositiveButton("Unlock") { _, _ ->
                 val pin = dialogView.findViewById<TextInputEditText>(R.id.etPassword)
                     ?.text?.toString() ?: ""
-                if (AppLockManager.verifyVaultPin(requireContext(), pin)) unlock()
-                else Snackbar.make(binding.root, "Wrong PIN", Snackbar.LENGTH_SHORT).show()
+                if (AppLockManager.verifyVaultPin(requireContext(), pin)) {
+                    unlock()
+                } else {
+                    Snackbar.make(binding.root, "Wrong PIN", Snackbar.LENGTH_SHORT).show()
+                    // Re-open the dialog, incrementing the attempt counter.
+                    showPinDialog(attemptsSoFar + 1)
+                }
             }
             .setNegativeButton("Cancel", null)
             .show()

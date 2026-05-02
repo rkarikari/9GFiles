@@ -3,7 +3,6 @@ package com.radiozport.ninegfiles.workers
 import android.app.*
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.radiozport.ninegfiles.NineGFilesApp
@@ -15,7 +14,9 @@ import kotlinx.coroutines.*
 class FileOperationService : Service() {
 
     companion object {
-        const val CHANNEL_ID = "file_operations"
+        /** Use the app-level channel ID so NineGFilesApp.createAllNotificationChannels()
+         *  is the single source of truth for channel creation. */
+        val CHANNEL_ID get() = NineGFilesApp.CHANNEL_FILE_OPS
         const val NOTIFICATION_ID = 1001
 
         const val ACTION_COPY   = "com.radiozport.ninegfiles.action.COPY"
@@ -69,7 +70,8 @@ class FileOperationService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        createNotificationChannel()
+        // Notification channel is pre-created by NineGFilesApp.createAllNotificationChannels();
+        // no per-service creation needed here.
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -180,20 +182,6 @@ class FileOperationService : Service() {
     }
 
     // ─── Notifications ────────────────────────────────────────────────────
-
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "File Operations",
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "Shows progress of file copy, move, delete operations"
-                setShowBadge(false)
-            }
-            getSystemService(NotificationManager::class.java)?.createNotificationChannel(channel)
-        }
-    }
 
     private fun buildNotification(text: String, progress: Int): Notification {
         val cancelIntent = PendingIntent.getService(

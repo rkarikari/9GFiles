@@ -217,6 +217,22 @@
             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchKeepPasteBar" android:layout_width="wrap_content" android:layout_height="wrap_content" />
         </LinearLayout>
 
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingStart="20dp" android:paddingEnd="20dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:gravity="center_vertical">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Keep Screen On" android:textAppearance="?attr/textAppearanceBodyLarge" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Prevents the display from sleeping while the app is open" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchKeepScreenOn" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingStart="20dp" android:paddingEnd="20dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:gravity="center_vertical">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Show File Info in List" android:textAppearance="?attr/textAppearanceBodyLarge" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Display size and modified date below each file name" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowFileInfo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" />
+        </LinearLayout>
+
         <!-- Security Section -->
         <com.google.android.material.divider.MaterialDivider android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" />
 
@@ -287,6 +303,69 @@
             android:layout_marginEnd="20dp"
             android:layout_marginTop="4dp"
             android:text="Clear Recent Files History" />
+
+        <!-- Trash auto-clean row -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:paddingStart="20dp" android:paddingEnd="16dp" android:paddingTop="12dp">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Auto-clean Trash After" android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorOnSurface" />
+                <TextView android:id="@+id/tvTrashAutoClean" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="30 days"
+                    android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTrashAutoClean"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Change" />
+        </LinearLayout>
+
+        <!-- Advanced Section -->
+        <com.google.android.material.divider.MaterialDivider android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" />
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingStart="20dp" android:paddingTop="20dp" android:paddingBottom="8dp" android:text="ADVANCED" android:textAppearance="?attr/textAppearanceLabelSmall" android:textColor="?attr/colorPrimary" android:letterSpacing="0.1" />
+
+        <!-- Remember last path -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="48dp"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:paddingStart="20dp" android:paddingEnd="16dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:text="Remember Last Opened Folder"
+                android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorOnSurface" />
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchRememberLastPath" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" />
+        </LinearLayout>
+
+        <!-- Show thumbnails -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="48dp"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:paddingStart="20dp" android:paddingEnd="16dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:text="Show Image Thumbnails"
+                android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorOnSurface" />
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowThumbnails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" />
+        </LinearLayout>
+
+        <!-- Date format row -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:paddingStart="20dp" android:paddingEnd="16dp" android:paddingTop="4dp" android:paddingBottom="4dp">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Date Format" android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorOnSurface" />
+                <TextView android:id="@+id/tvDateFormat" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="Medium (Apr 30, 2026)"
+                    android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDateFormat"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Change" />
+        </LinearLayout>
 
         <!-- About -->
         <com.google.android.material.divider.MaterialDivider android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp" />

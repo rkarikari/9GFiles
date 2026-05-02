@@ -30,6 +30,7 @@ import com.radiozport.ninegfiles.data.model.FileItem
 import com.radiozport.ninegfiles.data.model.FileType
 import com.radiozport.ninegfiles.databinding.FragmentImageViewerBinding
 import com.radiozport.ninegfiles.databinding.FragmentSingleImageBinding
+import com.radiozport.ninegfiles.R
 import com.radiozport.ninegfiles.ui.explorer.FileExplorerViewModel
 import com.radiozport.ninegfiles.utils.CastMediaServer
 import com.radiozport.ninegfiles.utils.FileUtils
@@ -226,6 +227,144 @@ class ImageViewerFragment : Fragment() {
                 .setNegativeButton("Cancel", null)
                 .show()
         }
+
+        // ── Rotate ──────────────────────────────────────────────────────────
+        binding.btnRotate.setOnClickListener {
+            val item = imageFiles.getOrNull(binding.viewPager.currentItem) ?: return@setOnClickListener
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val bmp = android.graphics.BitmapFactory.decodeFile(item.path) ?: return@launch
+                    val matrix = android.graphics.Matrix().apply { postRotate(90f) }
+                    val rotated = android.graphics.Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, matrix, true)
+                    bmp.recycle()
+                    val ext = item.extension.lowercase()
+                    val format = when (ext) {
+                        "png" -> android.graphics.Bitmap.CompressFormat.PNG
+                        "webp" -> android.graphics.Bitmap.CompressFormat.WEBP_LOSSLESS
+                        else -> android.graphics.Bitmap.CompressFormat.JPEG
+                    }
+                    item.file.outputStream().use { rotated.compress(format, 95, it) }
+                    rotated.recycle()
+                    withContext(Dispatchers.Main) {
+                        // Reload the page by invalidating the adapter
+                        binding.viewPager.adapter?.notifyItemChanged(binding.viewPager.currentItem)
+                        android.widget.Toast.makeText(requireContext(), "Rotated 90°", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        android.widget.Toast.makeText(requireContext(), "Could not rotate: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+
+        // ── Set as Wallpaper ─────────────────────────────────────────────────
+        binding.btnWallpaper.setOnClickListener {
+            val item = imageFiles.getOrNull(binding.viewPager.currentItem) ?: return@setOnClickListener
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Set as Wallpaper")
+                .setItems(arrayOf("Home screen", "Lock screen", "Both")) { _, which ->
+                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                        try {
+                            val bmp = android.graphics.BitmapFactory.decodeFile(item.path) ?: return@launch
+                            val wm = android.app.WallpaperManager.getInstance(requireContext())
+                            when (which) {
+                                0 -> {
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                                        wm.setBitmap(bmp, null, true, android.app.WallpaperManager.FLAG_SYSTEM)
+                                    } else { wm.setBitmap(bmp) }
+                                }
+                                1 -> {
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                                        wm.setBitmap(bmp, null, true, android.app.WallpaperManager.FLAG_LOCK)
+                                    }
+                                }
+                                2 -> wm.setBitmap(bmp)
+                            }
+                            bmp.recycle()
+                            withContext(Dispatchers.Main) {
+                                android.widget.Toast.makeText(requireContext(), "Wallpaper set!", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        } catch (e: Exception) {
+                            withContext(Dispatchers.Main) {
+                                android.widget.Toast.makeText(requireContext(), "Failed: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+
+        // ── Slideshow ────────────────────────────────────────────────────────
+        var slideshowRunning = false
+        val slideshowHandler = android.os.Handler(android.os.Looper.getMainLooper())
+        var slideshowRunnable: Runnable? = null
+
+        fun stopSlideshow() {
+            slideshowRunning = false
+            slideshowRunnable?.let { slideshowHandler.removeCallbacks(it) }
+            binding.btnSlideshow.setImageResource(R.drawable.ic_media_play)
+            binding.btnSlideshow.alpha = 1.0f
+        }
+
+        fun startSlideshow() {
+            slideshowRunning = true
+            binding.btnSlideshow.setImageResource(R.drawable.ic_close)
+            binding.btnSlideshow.alpha = 0.7f
+            val intervalMs = 4_000L  // 4 second default; future: read from prefs
+            val r = object : Runnable {
+                override fun run() {
+                    if (!slideshowRunning || _binding == null) return
+                    val next = binding.viewPager.currentItem + 1
+                    if (next >= imageFiles.size) {
+                        // Loop back to start
+                        binding.viewPager.setCurrentItem(0, true)
+                    } else {
+                        binding.viewPager.setCurrentItem(next, true)
+                    }
+                    slideshowHandler.postDelayed(this, intervalMs)
+                }
+            }
+            slideshowRunnable = r
+            slideshowHandler.postDelayed(r, intervalMs)
+        }
+
+        binding.btnSlideshow.setOnClickListener {
+            if (slideshowRunning) stopSlideshow()
+            else {
+                // Show interval picker first
+                val options = arrayOf("2 seconds", "4 seconds", "6 seconds", "10 seconds")
+                val intervals = longArrayOf(2_000L, 4_000L, 6_000L, 10_000L)
+                com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Slideshow interval")
+                    .setItems(options) { _, idx ->
+                        slideshowHandler.removeCallbacksAndMessages(null)
+                        slideshowRunning = true
+                        binding.btnSlideshow.setImageResource(R.drawable.ic_close)
+                        binding.btnSlideshow.alpha = 0.7f
+                        val intervalMs = intervals[idx]
+                        val r = object : Runnable {
+                            override fun run() {
+                                if (!slideshowRunning || _binding == null) return
+                                val next = binding.viewPager.currentItem + 1
+                                if (next >= imageFiles.size) binding.viewPager.setCurrentItem(0, true)
+                                else binding.viewPager.setCurrentItem(next, true)
+                                slideshowHandler.postDelayed(this, intervalMs)
+                            }
+                        }
+                        slideshowRunnable = r
+                        slideshowHandler.postDelayed(r, intervalMs)
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
+        }
+
+        // Stop slideshow when fragment pauses
+        viewLifecycleOwner.lifecycle.addObserver(object : androidx.lifecycle.DefaultLifecycleObserver {
+            override fun onPause(owner: androidx.lifecycle.LifecycleOwner) { stopSlideshow() }
+        })
     }
 
     /**

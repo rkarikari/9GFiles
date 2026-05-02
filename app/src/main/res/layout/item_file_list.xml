@@ -114,6 +114,19 @@
             app:tint="?attr/colorPrimary"
             tools:visibility="visible" />
 
+        <!-- Note indicator dot -->
+        <View
+            android:id="@+id/noteDot"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:layout_marginEnd="2dp"
+            android:background="@drawable/shape_circle_accent"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/ivBookmark"
+            app:layout_constraintEnd_toStartOf="@id/ivBookmark"
+            app:layout_constraintTop_toTopOf="@id/ivBookmark"
+            tools:visibility="visible" />
+
         <!-- Context menu button -->
         <ImageButton
             android:id="@+id/btnMenu"

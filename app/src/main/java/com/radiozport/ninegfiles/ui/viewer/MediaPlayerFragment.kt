@@ -74,7 +74,18 @@ class MediaPlayerFragment : Fragment() {
     // the status callback fire close together at end-of-track.
     private var castAdvanceScheduled = false
 
+    // ── Playback extras ───────────────────────────────────────────────────────
+    private var currentSpeedIndex = 2  // index into SPEEDS array (1.0× default)
+    private var repeatMode = "OFF"     // OFF | ALL | ONE
+    private var shuffleEnabled = false
+    private var sleepTimerRunnable: Runnable? = null
+    private val sleepHandler = Handler(Looper.getMainLooper())
+    private var shuffledQueue: List<String> = emptyList()
+    private var shuffledIndex = 0
+
     companion object {
+        private val SPEEDS = floatArrayOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f)
+        private val SPEED_LABELS = arrayOf("0.5×", "0.75×", "1.0×", "1.25×", "1.5×", "2.0×")
         private const val TAG = "MediaPlayerFragment"
         private const val ARG_PATHS    = "paths"
         private const val ARG_INDEX    = "startIndex"
@@ -209,6 +220,7 @@ class MediaPlayerFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         handler.removeCallbacks(seekUpdater)
+        sleepTimerRunnable?.let { sleepHandler.removeCallbacks(it) }
         unregisterRemoteCallback()
         releasePlayer()
         surfaceCallback?.let { binding.surfaceView.holder.removeCallback(it) }
@@ -501,6 +513,112 @@ class MediaPlayerFragment : Fragment() {
                 override fun onStopTrackingTouch(sb: android.widget.SeekBar?) {}
             }
         )
+
+        // ── Playback speed ────────────────────────────────────────────────────
+        binding.btnSpeed.setOnClickListener {
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Playback Speed")
+                .setItems(SPEED_LABELS) { _, idx ->
+                    currentSpeedIndex = idx
+                    val speed = SPEEDS[idx]
+                    binding.btnSpeed.text = SPEED_LABELS[idx]
+                    applyPlaybackSpeed(speed)
+                }
+                .show()
+        }
+
+        // ── Repeat mode ───────────────────────────────────────────────────────
+        updateRepeatIcon()
+        binding.btnRepeat.setOnClickListener {
+            repeatMode = when (repeatMode) {
+                "OFF" -> "ALL"
+                "ALL" -> "ONE"
+                else  -> "OFF"
+            }
+            updateRepeatIcon()
+            Toast.makeText(requireContext(), "Repeat: $repeatMode", Toast.LENGTH_SHORT).show()
+        }
+
+        // ── Shuffle ───────────────────────────────────────────────────────────
+        updateShuffleIcon()
+        binding.btnShuffle.setOnClickListener {
+            shuffleEnabled = !shuffleEnabled
+            if (shuffleEnabled) {
+                shuffledQueue = queue.toMutableList().also { it.shuffle() }
+                shuffledIndex = shuffledQueue.indexOf(currentPath).coerceAtLeast(0)
+            }
+            updateShuffleIcon()
+            Toast.makeText(requireContext(), if (shuffleEnabled) "Shuffle on" else "Shuffle off", Toast.LENGTH_SHORT).show()
+        }
+
+        // ── Sleep timer ───────────────────────────────────────────────────────
+        binding.btnSleepTimer.setOnClickListener {
+            val options = arrayOf("15 minutes", "30 minutes", "45 minutes", "1 hour", "Cancel timer")
+            val minutes = intArrayOf(15, 30, 45, 60, -1)
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Sleep Timer")
+                .setItems(options) { _, idx ->
+                    sleepTimerRunnable?.let { sleepHandler.removeCallbacks(it) }
+                    if (minutes[idx] == -1) {
+                        binding.btnSleepTimer.alpha = 1.0f
+                        Toast.makeText(requireContext(), "Sleep timer cancelled", Toast.LENGTH_SHORT).show()
+                        return@setItems
+                    }
+                    val ms = minutes[idx] * 60_000L
+                    binding.btnSleepTimer.alpha = 0.6f
+                    val r = Runnable {
+                        player?.pause()
+                        handler.removeCallbacks(seekUpdater)
+                        binding.btnPlay.setImageResource(android.R.drawable.ic_media_play)
+                        binding.btnSleepTimer.alpha = 1.0f
+                        Toast.makeText(requireContext(), "Sleep timer: stopped playback", Toast.LENGTH_LONG).show()
+                    }
+                    sleepTimerRunnable = r
+                    sleepHandler.postDelayed(r, ms)
+                    Toast.makeText(requireContext(), "Sleep in ${options[idx]}", Toast.LENGTH_SHORT).show()
+                }
+                .show()
+        }
+    }
+
+    private fun applyPlaybackSpeed(speed: Float) {
+        val p = player ?: return
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            try {
+                p.playbackParams = p.playbackParams.setSpeed(speed)
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Speed change not supported for this media", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun updateRepeatIcon() {
+        val alpha = if (repeatMode == "OFF") 0.4f else 1.0f
+        binding.btnRepeat.alpha = alpha
+        binding.btnRepeat.contentDescription = "Repeat: $repeatMode"
+    }
+
+    private fun updateShuffleIcon() {
+        binding.btnShuffle.alpha = if (shuffleEnabled) 1.0f else 0.4f
+    }
+
+    private fun advanceWithRepeatShuffle(direction: Int) {
+        when {
+            shuffleEnabled -> {
+                shuffledIndex = (shuffledIndex + direction).coerceIn(0, shuffledQueue.size - 1)
+                currentIndex = queue.indexOf(shuffledQueue.getOrNull(shuffledIndex))
+                    .coerceAtLeast(0)
+            }
+            repeatMode == "ONE" -> { /* stay on same track — just restart */ }
+            else -> {
+                val next = currentIndex + direction
+                currentIndex = when {
+                    next < 0 -> if (repeatMode == "ALL") queue.size - 1 else 0
+                    next >= queue.size -> if (repeatMode == "ALL") 0 else queue.size - 1
+                    else -> next
+                }
+            }
+        }
     }
 
     // ── Cast helpers ──────────────────────────────────────────────────────────

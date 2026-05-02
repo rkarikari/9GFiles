@@ -137,6 +137,7 @@ class FileActionsBottomSheet : BottomSheetDialogFragment() {
         val bookmarkLabel = if (item.isBookmarked) "Remove Bookmark" else "Add Bookmark"
         bind(R.id.actionBookmark, R.drawable.ic_bookmark,        bookmarkLabel,        R.id.action_bookmark)
         bind(R.id.actionPin,      R.drawable.ic_home, "Pin to Home Screen", R.id.action_home_shortcut)
+        bind(R.id.actionNote,     R.drawable.ic_menu_edit, "Add / Edit Note…",   R.id.action_note)
 
         // ── Group 6: Delete (destructive — tinted red) ───────────────────────
         fun bindDestructive(rowId: Int, iconRes: Int, label: String, actionId: Int) {

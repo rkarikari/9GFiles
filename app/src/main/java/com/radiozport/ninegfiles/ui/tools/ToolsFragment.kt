@@ -66,15 +66,24 @@ class ToolsFragment : Fragment() {
             findNavController().navigate(R.id.action_tools_to_app_manager)
         }
 
-        // Show live trash summary in the recycle bin card
+        // Show live trash summary (count + total size) in the recycle bin card
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    viewModel.trashCount.collectLatest { count ->
-                        binding.tvTrashSummary?.text =
-                            if (count == 0) "Trash is empty"
-                            else "$count item${if (count == 1) "" else "s"} in trash"
-                    }
+                    kotlinx.coroutines.flow.combine(
+                        viewModel.trashCount,
+                        viewModel.trashSize
+                    ) { count, bytes -> Pair(count, bytes ?: 0L) }
+                        .collectLatest { (count, bytes) ->
+                            binding.tvTrashSummary?.text = when {
+                                count == 0 -> "Trash is empty"
+                                else -> {
+                                    val items = "$count item${if (count == 1) "" else "s"}"
+                                    val size  = com.radiozport.ninegfiles.utils.FileUtils.formatSize(bytes)
+                                    "$items · $size"
+                                }
+                            }
+                        }
                 }
             }
         }

@@ -137,7 +137,15 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
-        <!-- WorkManager Worker -->
+        <!--
+            NineGFilesApp implements Configuration.Provider (on-demand WorkManager
+            initialization). The WorkManager AAR ships its own manifest that contributes
+            WorkManagerInitializer via InitializationProvider. We must explicitly remove
+            that library-contributed entry here so the manifest merger strips it from the
+            final merged manifest before lint and the runtime see it. Without this block
+            the merged manifest retains the library entry and lint fires
+            RemoveWorkManagerInitializer even though our own source no longer declares it.
+        -->
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
@@ -145,7 +153,8 @@
             tools:node="merge">
             <meta-data
                 android:name="androidx.work.WorkManagerInitializer"
-                android:value="androidx.startup" />
+                android:value="androidx.startup"
+                tools:node="remove" />
         </provider>
     </application>
 

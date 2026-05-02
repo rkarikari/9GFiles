@@ -1,15 +1,23 @@
 package com.radiozport.ninegfiles.ui.server
 
+import android.annotation.SuppressLint
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.os.Environment
 import android.view.*
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
+import com.radiozport.ninegfiles.NineGFilesApp
+import com.radiozport.ninegfiles.R
 import com.radiozport.ninegfiles.databinding.FragmentFtpServerBinding
+import com.radiozport.ninegfiles.ui.main.MainActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
@@ -42,6 +50,7 @@ class FtpServerFragment : Fragment() {
 
     companion object {
         private const val DEFAULT_PORT = 2121   // >1024 so no root needed
+        private const val NOTIFICATION_FTP_ID = 2001
         private val ROOT = Environment.getExternalStorageDirectory()
     }
 
@@ -94,6 +103,7 @@ class FtpServerFragment : Fragment() {
                 serverSocket = ServerSocket(port)
                 log("Server started on port $port")
                 log("Root: ${ROOT.absolutePath}")
+                postFtpNotification(serverUrl)
                 while (isActive) {
                     val client = serverSocket!!.accept()
                     launch { handleClient(client) }
@@ -108,12 +118,36 @@ class FtpServerFragment : Fragment() {
         serverJob?.cancel()
         runCatching { serverSocket?.close() }
         serverSocket = null
+        cancelFtpNotification()
         binding.btnToggleServer.text = "Start Server"
         binding.btnShowQr.isEnabled = false
         binding.tvServerAddress.text = "Server stopped"
         binding.cardStatus.setCardBackgroundColor(
             requireContext().getColor(android.R.color.transparent))
         log("Server stopped")
+    }
+
+    // ─── Persistent notification ──────────────────────────────────────────
+
+    @SuppressLint("MissingPermission")
+    private fun postFtpNotification(serverUrl: String) {
+        val tapIntent = PendingIntent.getActivity(
+            requireContext(), 0,
+            Intent(requireContext(), MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        val notification = NotificationCompat.Builder(requireContext(), NineGFilesApp.CHANNEL_FTP_SERVER)
+            .setSmallIcon(R.drawable.ic_ftp_server)
+            .setContentTitle("FTP Server is running")
+            .setContentText(serverUrl)
+            .setOngoing(true)
+            .setContentIntent(tapIntent)
+            .build()
+        NotificationManagerCompat.from(requireContext()).notify(NOTIFICATION_FTP_ID, notification)
+    }
+
+    private fun cancelFtpNotification() {
+        NotificationManagerCompat.from(requireContext()).cancel(NOTIFICATION_FTP_ID)
     }
 
     // ─── FTP session handler ─────────────────────────────────────────────

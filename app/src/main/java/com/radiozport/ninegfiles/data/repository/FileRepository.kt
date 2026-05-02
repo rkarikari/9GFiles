@@ -51,11 +51,17 @@ class FileRepository(
         val dir = File(path)
         if (!dir.exists() || !dir.isDirectory || !dir.canRead()) return@withContext emptyList()
         val bookmarkedPaths = db.bookmarkDao().getAllBookmarkedPaths().toSet()
+        val notedPaths = db.fileNoteDao().getAllNotes()
+            .first()
+            .map { it.filePath }.toSet()
         val files = dir.listFiles()
             ?.filter { showHidden || !it.name.startsWith(".") }
             ?.map { file ->
                 val childCount = if (file.isDirectory) file.listFiles()?.size ?: 0 else 0
-                FileItem.fromFile(file, childCount).copy(isBookmarked = file.absolutePath in bookmarkedPaths)
+                FileItem.fromFile(file, childCount).copy(
+                    isBookmarked = file.absolutePath in bookmarkedPaths,
+                    hasNote = file.absolutePath in notedPaths
+                )
             } ?: emptyList()
         sortFiles(files, sortOption, foldersFirst)
     }
@@ -542,10 +548,12 @@ class FileRepository(
 
     // ─── Bookmarks ────────────────────────────────────────────────────────────
 
-    fun getBookmarks() = db.bookmarkDao().getAllBookmarks()
-    suspend fun addBookmark(item: FileItem) = db.bookmarkDao().insertBookmark(BookmarkEntity(path = item.path, name = item.name, isDirectory = item.isDirectory))
+    fun getBookmarks()              = db.bookmarkDao().getAllBookmarks()
+    suspend fun addBookmark(item: FileItem)  = db.bookmarkDao().insertBookmark(BookmarkEntity(path = item.path, name = item.name, isDirectory = item.isDirectory))
+    /** Re-inserts a previously removed [BookmarkEntity] verbatim, preserving emoji and addedAt. */
+    suspend fun restoreBookmark(entity: BookmarkEntity) = db.bookmarkDao().insertBookmark(entity)
     suspend fun removeBookmark(path: String) = db.bookmarkDao().deleteBookmarkByPath(path)
-    suspend fun isBookmarked(path: String) = db.bookmarkDao().isBookmarked(path)
+    suspend fun isBookmarked(path: String)   = db.bookmarkDao().isBookmarked(path)
 
     // ─── Recent Files ─────────────────────────────────────────────────────────
 
@@ -579,6 +587,15 @@ class FileRepository(
     fun getTagsForFile(path: String) = db.fileTagDao().getTagsForFile(path)
     fun getAllTags() = db.fileTagDao().getAllTags()
     suspend fun addTag(filePath: String, tag: String, color: Int) = db.fileTagDao().addTag(FileTagEntity(filePath = filePath, tag = tag, color = color))
+
+    // ─── File Notes ───────────────────────────────────────────────────────────
+
+    fun getNoteForFile(path: String) = db.fileNoteDao().getNoteForFile(path)
+    fun getAllNotes() = db.fileNoteDao().getAllNotes()
+    suspend fun upsertNote(filePath: String, note: String) =
+        db.fileNoteDao().upsertNote(com.radiozport.ninegfiles.data.db.FileNoteEntity(filePath = filePath, note = note))
+    suspend fun deleteNote(filePath: String) = db.fileNoteDao().deleteNoteByPath(filePath)
+    suspend fun hasNote(path: String) = db.fileNoteDao().hasNote(path)
 
     // ─── File Details ─────────────────────────────────────────────────────────
 

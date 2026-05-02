@@ -1,25 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-
-    <!-- Deep navy base -->
-    <path
-        android:fillColor="#0B1E3D"
-        android:pathData="M0,0 L108,0 L108,108 L0,108 Z" />
-
-    <!-- Radial gradient overlay — lighter centre -->
-    <path
-        android:fillColor="#1A3F6F"
-        android:fillAlpha="0.55"
-        android:pathData="M108,0 A108,108 0 0,1 108,108 L0,108 A108,108 0 0,1 0,0 Z" />
-
-    <!-- Subtle top-left glow -->
-    <path
-        android:fillColor="#2158A8"
-        android:fillAlpha="0.30"
-        android:pathData="M0,0 L72,0 Q54,18 0,54 Z" />
-
-</vector>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#311B92"/>
+</shape>

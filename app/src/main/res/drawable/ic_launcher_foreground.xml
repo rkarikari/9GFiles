@@ -1,80 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Adaptive icon foreground — Dual Pane folder
+  Canvas: 108×108dp. Safe zone: 66dp circle centred at (54,54).
+  Folder is sized to fit INSCRIBED within the safe zone circle with margin.
+
+  Folder aspect ratio: w=92, h=75 in original 120-space (~1.227:1).
+  Target folder width: 58dp, height: 47.3dp (fits inside ~74dp circle — inside safe zone).
+  folder_scale = 58/92 = 0.630
+  ox = (108 - 58)/2 - 14*0.630 = 25  - 8.83 = 16.2
+  oy = (108 - 47.3)/2 - 25*0.630 = 30.35 - 15.75 = 14.6
+  centre-x (divider): 60*0.630 + 16.2 = 54.0
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- ── Back document (faintest) ── -->
+    <!-- Left half of folder -->
     <path
-        android:fillColor="#FFFFFF"
-        android:fillAlpha="0.22"
-        android:pathData="M 36,14 L 66,14 L 78,26 L 78,70 L 36,70 Z" />
-    <path
-        android:fillColor="#90CAF9"
-        android:fillAlpha="0.30"
-        android:pathData="M 66,14 L 66,26 L 78,26 Z" />
+        android:fillColor="#5E35B1"
+        android:pathData="
+M 25.0,29.4
+L 43.9,29.4
+L 49.0,36.9
+L 54.0,36.9
+L 54.0,77.9
+L 25.0,77.9
+Q 22.4,77.9 20.9,76.4
+Q 19.5,74.9 19.5,72.3
+L 19.5,34.0
+Q 19.5,29.4 25.0,29.4 Z"/>
 
-    <!-- ── Middle document ── -->
+    <!-- Right half of folder -->
     <path
-        android:fillColor="#FFFFFF"
-        android:fillAlpha="0.50"
-        android:pathData="M 30,22 L 60,22 L 72,34 L 72,78 L 30,78 Z" />
-    <path
-        android:fillColor="#90CAF9"
-        android:fillAlpha="0.55"
-        android:pathData="M 60,22 L 60,34 L 72,34 Z" />
+        android:fillColor="#9575CD"
+        android:pathData="
+M 54.0,36.9
+L 83.0,36.9
+Q 88.5,36.9 88.5,42.4
+L 88.5,72.3
+Q 88.5,77.9 83.0,77.9
+L 54.0,77.9
+Z"/>
 
-    <!-- ── Front document (main) ── -->
+    <!-- Vertical divider -->
     <path
-        android:fillColor="#FFFFFF"
-        android:fillAlpha="0.95"
-        android:pathData="M 24,30 L 54,30 L 66,42 L 66,86 L 24,86 Z" />
-
-    <!-- Fold shadow (makes fold look real) -->
-    <path
-        android:fillColor="#1565C0"
-        android:fillAlpha="0.18"
-        android:pathData="M 54,30 L 54,42 L 66,42 Z" />
-
-    <!-- Fold highlight -->
-    <path
-        android:fillColor="#E3F2FD"
-        android:fillAlpha="0.90"
-        android:pathData="M 54,30 L 54,42 L 66,42 Z" />
-
-    <!-- Content lines -->
-    <path
-        android:fillColor="#1565C0"
-        android:fillAlpha="0.25"
-        android:pathData="M 32,54 L 56,54 L 56,57 L 32,57 Z" />
-    <path
-        android:fillColor="#1565C0"
-        android:fillAlpha="0.25"
-        android:pathData="M 32,62 L 56,62 L 56,65 L 32,65 Z" />
-    <path
-        android:fillColor="#1565C0"
-        android:fillAlpha="0.25"
-        android:pathData="M 32,70 L 48,70 L 48,73 L 32,73 Z" />
-
-    <!-- ── Accent circle badge (top-right) ── -->
-    <path
-        android:fillColor="#42A5F5"
-        android:pathData="M 81.0,26.0 L 80.3,29.4 L 78.4,32.4 L 75.4,34.3 L 72.0,35.0 L 68.6,34.3 L 65.6,32.4 L 63.7,29.4 L 63.0,26.0 L 63.7,22.6 L 65.6,19.6 L 68.6,17.7 L 72.0,17.0 L 75.4,17.7 L 78.4,19.6 L 80.3,22.6 Z" />
-
-    <!-- Inner ring of badge -->
-    <path
-        android:fillColor="#0D2144"
-        android:pathData="M 78.0,26.0 L 77.5,28.5 L 76.1,30.6 L 74.0,32.0 L 72.0,32.5 L 70.0,32.0 L 67.9,30.6 L 66.5,28.5 L 66.0,26.0 L 66.5,23.5 L 67.9,21.4 L 70.0,20.0 L 72.0,19.5 L 74.0,20.0 L 76.1,21.4 L 77.5,23.5 Z" />
-
-    <!-- "9" numeral inside badge — built from two rects -->
-    <!-- Head of 9 (top arc, simplified as small rounded rect) -->
-    <path
-        android:fillColor="#42A5F5"
-        android:pathData="M 70,21 L 74,21 Q 76,21 76,23 L 76,26 Q 76,28 74,28 L 70,28 Q 68,28 68,26 L 68,23 Q 68,21 70,21 Z" />
-    <!-- Tail of 9 -->
-    <path
-        android:fillColor="#42A5F5"
-        android:pathData="M 73.5,26 L 75.5,26 L 75.5,31.5 L 73.5,31.5 Z" />
+        android:strokeColor="#EDE7F6"
+        android:strokeAlpha="0.65"
+        android:strokeWidth="1.2"
+        android:fillColor="#00000000"
+        android:pathData="M 54.0,36.9 L 54.0,77.9"/>
 
 </vector>

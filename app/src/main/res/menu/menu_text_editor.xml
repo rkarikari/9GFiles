@@ -4,5 +4,10 @@
     <item android:id="@+id/action_edit_toggle" android:title="Edit" app:showAsAction="ifRoom" android:icon="@drawable/ic_edit" />
     <item android:id="@+id/action_save" android:title="Save" app:showAsAction="ifRoom" android:icon="@drawable/ic_save" android:visible="false" />
     <item android:id="@+id/action_preview" android:title="Preview" android:showAsAction="ifRoom" />
+    <item android:id="@+id/action_find_replace" android:title="Find &amp; Replace…" app:showAsAction="never" />
+    <item android:id="@+id/action_go_to_line" android:title="Go to Line…" app:showAsAction="never" />
+    <item android:id="@+id/action_word_wrap" android:title="Word Wrap: On" app:showAsAction="never" />
+    <item android:id="@+id/action_font_size" android:title="Font Size…" app:showAsAction="never" />
     <item android:id="@+id/action_print" android:title="Print" app:showAsAction="never" />
 </menu>
+

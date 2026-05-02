@@ -46,35 +46,56 @@
         android:paddingBottom="32dp">
 
         <ImageButton android:id="@+id/btnShare"
-            android:layout_width="56dp" android:layout_height="56dp"
+            android:layout_width="48dp" android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_content_copy" app:tint="@android:color/white"
-            android:layout_marginEnd="32dp" />
+            android:layout_marginEnd="16dp" />
+
+        <ImageButton android:id="@+id/btnRotate"
+            android:layout_width="48dp" android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_menu_directions" app:tint="@android:color/white"
+            android:layout_marginEnd="16dp"
+            android:contentDescription="Rotate 90°" />
+
+        <ImageButton android:id="@+id/btnSlideshow"
+            android:layout_width="48dp" android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_media_play" app:tint="@android:color/white"
+            android:layout_marginEnd="16dp"
+            android:contentDescription="Slideshow" />
+
+        <ImageButton android:id="@+id/btnWallpaper"
+            android:layout_width="48dp" android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_home" app:tint="@android:color/white"
+            android:layout_marginEnd="16dp"
+            android:contentDescription="Set as Wallpaper" />
 
         <ImageButton android:id="@+id/btnSaveAs"
-            android:layout_width="56dp" android:layout_height="56dp"
+            android:layout_width="48dp" android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_save" app:tint="@android:color/white"
-            android:layout_marginEnd="32dp"
+            android:layout_marginEnd="16dp"
             android:contentDescription="Save As" />
 
         <ImageButton android:id="@+id/btnPrint"
-            android:layout_width="56dp" android:layout_height="56dp"
+            android:layout_width="48dp" android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_menu_agenda" app:tint="@android:color/white"
-            android:layout_marginEnd="32dp"
+            android:layout_marginEnd="16dp"
             android:contentDescription="Print" />
 
         <!-- Cast button — casts the current image to a Chromecast device -->
         <ImageButton android:id="@+id/btnCast"
-            android:layout_width="56dp" android:layout_height="56dp"
+            android:layout_width="48dp" android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_cast"
-            android:layout_marginEnd="32dp"
+            android:layout_marginEnd="16dp"
             android:contentDescription="Cast to TV" />
 
         <ImageButton android:id="@+id/btnDelete"
-            android:layout_width="56dp" android:layout_height="56dp"
+            android:layout_width="48dp" android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_delete" app:tint="#FF6B6B" />
 

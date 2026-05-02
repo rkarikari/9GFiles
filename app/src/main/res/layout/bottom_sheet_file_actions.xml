@@ -125,6 +125,7 @@
             <!-- ── Group 5: Bookmark / Pin ── -->
             <include layout="@layout/item_action_row" android:id="@+id/actionBookmark"     tools:layout_height="40dp" tools:layout_width="match_parent"/>
             <include layout="@layout/item_action_row" android:id="@+id/actionPin"          tools:layout_height="40dp" tools:layout_width="match_parent"/>
+            <include layout="@layout/item_action_row" android:id="@+id/actionNote"         tools:layout_height="40dp" tools:layout_width="match_parent"/>
 
             <View android:layout_width="match_parent" android:layout_height="1dp"
                 android:background="?attr/colorOutlineVariant" android:layout_marginStart="52dp"/>

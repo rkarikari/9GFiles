@@ -43,6 +43,31 @@ class FileAdapter(
      *  "normal"      → 64 dp  (default)
      *  "comfortable" → 80 dp  (accessibility, touch-friendly)
      */
+    /**
+     * When false, size and date lines are hidden in LIST and GRID view.
+     * Matches the "Show File Info in List" preference in Settings.
+     */
+    var showFileInfo: Boolean = true
+    var showThumbnails: Boolean = true
+        set(value) {
+            if (field != value) { field = value; notifyDataSetChanged() }
+        }
+
+    /**
+     * When false, file extensions are stripped from display names.
+     * Matches the "Show Extensions" preference in Settings.
+     */
+    var showExtensions: Boolean = true
+        set(value) {
+            if (field != value) { field = value; notifyDataSetChanged() }
+        }
+
+    /** Returns the display name for [item] honouring the [showExtensions] flag. */
+    private fun displayName(item: FileItem): String {
+        if (showExtensions || item.isDirectory) return item.name
+        return item.name.substringBeforeLast('.').ifEmpty { item.name }
+    }
+
     var listDensity: String = "normal"
         set(value) {
             if (field != value) {
@@ -138,12 +163,15 @@ class FileAdapter(
         }
 
         fun bind(item: FileItem, isSelected: Boolean) {
-            binding.tvName.text = item.name
+            binding.tvName.text = displayName(item)
             binding.tvSize.text = item.formattedSize
             binding.tvDate.text = formatDate(item.lastModified)
+            binding.tvSize.visibility = if (showFileInfo && !item.isDirectory) View.VISIBLE else View.GONE
+            binding.tvDate.visibility = if (showFileInfo) View.VISIBLE else View.GONE
             loadThumbnail(binding.root.context, item, binding.ivIcon)
             updateSelection(isSelected)
             binding.ivBookmark.visibility = if (item.isBookmarked) View.VISIBLE else View.GONE
+            binding.noteDot?.visibility = if (item.hasNote) View.VISIBLE else View.GONE
 
             // Apply density: adjust the ConstraintLayout min-height inside the CardView
             val density = binding.root.context.resources.displayMetrics.density
@@ -171,8 +199,9 @@ class FileAdapter(
         }
 
         fun bind(item: FileItem, isSelected: Boolean) {
-            binding.tvName.text = item.name
+            binding.tvName.text = displayName(item)
             binding.tvSize.text = item.formattedSize
+            binding.tvSize.visibility = if (showFileInfo && !item.isDirectory) View.VISIBLE else View.GONE
             loadThumbnail(binding.root.context, item, binding.ivThumbnail)
             updateSelection(isSelected)
         }
@@ -194,7 +223,7 @@ class FileAdapter(
         }
 
         fun bind(item: FileItem, isSelected: Boolean) {
-            binding.tvName.text = item.name
+            binding.tvName.text = displayName(item)
             loadThumbnail(binding.root.context, item, binding.ivIcon)
             updateSelection(isSelected)
         }
@@ -208,8 +237,12 @@ class FileAdapter(
     // ─── Thumbnail Loading ────────────────────────────────────────────────
 
     private fun loadThumbnail(context: Context, item: FileItem, imageView: android.widget.ImageView) {
-        when (item.fileType) {
-            FileType.IMAGE -> {
+        when {
+            !showThumbnails || item.fileType !in listOf(FileType.IMAGE, FileType.VIDEO, FileType.APK) -> {
+                imageView.setImageResource(getIconForType(item.fileType))
+                Glide.with(context).clear(imageView)
+            }
+            item.fileType == FileType.IMAGE -> {
                 Glide.with(context)
                     .load(item.file)
                     .apply(
@@ -222,7 +255,7 @@ class FileAdapter(
                     )
                     .into(imageView)
             }
-            FileType.VIDEO -> {
+            item.fileType == FileType.VIDEO -> {
                 Glide.with(context)
                     .load(item.file)
                     .apply(
@@ -232,11 +265,11 @@ class FileAdapter(
                             .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .override(300, 300)
                             .centerCrop()
-                            .frame(1_000_000L) // 1 second frame
+                            .frame(1_000_000L)
                     )
                     .into(imageView)
             }
-            FileType.APK -> {
+            item.fileType == FileType.APK -> {
                 Glide.with(context)
                     .load(item.file)
                     .apply(RequestOptions().placeholder(R.drawable.ic_file_apk).error(R.drawable.ic_file_apk))

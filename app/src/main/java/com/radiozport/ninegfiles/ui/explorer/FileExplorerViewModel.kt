@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 class FileExplorerViewModel(application: Application) : AndroidViewModel(application) {
 
     private val app = application as NineGFilesApp
-    private val repo: FileRepository = app.fileRepository
+    val repo: FileRepository = app.fileRepository
     private val prefs: AppPreferences = app.preferences
 
     // ─── Navigation State ──────────────────────────────────────────────────
@@ -78,8 +78,11 @@ class FileExplorerViewModel(application: Application) : AndroidViewModel(applica
     val showHidden = prefs.showHidden.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
     val gridSpanCount = prefs.gridSpanCount.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), 3)
     val foldersFirst = prefs.foldersFirst.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), true)
-    val listDensity = prefs.listDensity.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), "normal")
-    val keepPasteBar = prefs.keepPasteBar.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
+    val listDensity    = prefs.listDensity.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), "normal")
+    val showFileInfo   = prefs.showFileInfo.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), true)
+    val showExtensions = prefs.showExtensions.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), true)
+    val showThumbnails = prefs.showThumbnails.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), true)
+    val keepPasteBar  = prefs.keepPasteBar.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
 
     // ─── Selection ────────────────────────────────────────────────────────
 
@@ -191,7 +194,13 @@ class FileExplorerViewModel(application: Application) : AndroidViewModel(applica
         _currentPath.value = path
         clearSelection()
         loadFiles(path)
-        viewModelScope.launch { repo.addRecentFolder(path, File(path).name) }
+        viewModelScope.launch {
+            repo.addRecentFolder(path, File(path).name)
+            // Persist last-visited path only when the preference is enabled
+            if (prefs.rememberLastPath.first()) {
+                prefs.setLastPath(path)
+            }
+        }
     }
 
     fun navigateBack(): Boolean {
@@ -498,9 +507,17 @@ class FileExplorerViewModel(application: Application) : AndroidViewModel(applica
 
     val recentFiles = repo.getRecentFiles()
 
+    fun clearRecentFiles() {
+        viewModelScope.launch { repo.clearRecentFiles() }
+    }
+
     // ─── Recent Folders ───────────────────────────────────────────────────
 
     val recentFolders = repo.getRecentFolders()
+
+    fun clearRecentFolders() {
+        viewModelScope.launch { repo.clearRecentFolders() }
+    }
 
     // ─── Search ───────────────────────────────────────────────────────────
 

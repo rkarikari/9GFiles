@@ -144,6 +144,7 @@ class HomeFragment : Fragment() {
         setupRecentFiles()
         setupRecentFolders()
         setupQuickAccess()
+        setupNotesSection()
         hideGoogleDriveCard()
         setupDrivesRow()
         observeViewModel()
@@ -308,6 +309,7 @@ class HomeFragment : Fragment() {
                 launch {
                     viewModel.recentFiles.collectLatest { files ->
                         binding.tvRecentEmpty.isVisible = files.isEmpty()
+                        binding.btnClearRecent.isVisible = files.isNotEmpty()
                         recentAdapter.submitList(files)
                     }
                 }
@@ -317,6 +319,17 @@ class HomeFragment : Fragment() {
                         recentFolderAdapter.submitList(folders)
                     }
                 }
+            }
+        }
+
+        // Clear-recent button — wired once here so it's always active regardless of
+        // how many times observeViewModel() is called.
+        binding.btnClearRecent.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.clearRecentFiles()
+                com.google.android.material.snackbar.Snackbar
+                    .make(binding.root, "Recent files cleared", com.google.android.material.snackbar.Snackbar.LENGTH_SHORT)
+                    .show()
             }
         }
     }
@@ -734,6 +747,37 @@ class HomeFragment : Fragment() {
             .setPositiveButton("Delete") { _, _ -> viewModel.delete(listOf(item)) }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    // ── Pinned Notes on Home ──────────────────────────────────────────────
+
+    private fun setupNotesSection() {
+        // Observe all notes and display them as chips on the home screen
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                val app = requireActivity().application as NineGFilesApp
+                app.fileRepository.getAllNotes().collectLatest { notes ->
+                    val container = binding.notesChipGroup ?: return@collectLatest
+                    container.removeAllViews()
+                    if (notes.isEmpty()) {
+                        binding.cardNotes?.isVisible = false
+                        return@collectLatest
+                    }
+                    binding.cardNotes?.isVisible = true
+                    notes.take(5).forEach { note ->
+                        val chip = com.google.android.material.chip.Chip(requireContext()).apply {
+                            text = "${java.io.File(note.filePath).name}: ${note.note.take(40)}…"
+                            isClickable = true
+                            setOnClickListener {
+                                viewModel.navigate(java.io.File(note.filePath).parent ?: "/")
+                                findNavController().navigate(R.id.action_home_to_explorer)
+                            }
+                        }
+                        container.addView(chip)
+                    }
+                }
+            }
+        }
     }
 
     private fun confirmShred(item: FileItem) {

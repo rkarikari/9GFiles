@@ -36,6 +36,7 @@ import com.radiozport.ninegfiles.ui.viewer.QuickPeekBottomSheet
 import com.radiozport.ninegfiles.ui.vault.SecureVaultFragment
 import androidx.activity.OnBackPressedCallback
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -399,6 +400,22 @@ class FileExplorerFragment : Fragment() {
                         fileAdapter.listDensity = density
                     }
                 }
+                launch {
+                    viewModel.showFileInfo.collectLatest { show ->
+                        fileAdapter.showFileInfo = show
+                    }
+                }
+                launch {
+                    viewModel.showExtensions.collectLatest { show ->
+                        fileAdapter.showExtensions = show
+                    }
+                }
+                launch {
+                    viewModel.showThumbnails.collectLatest { show ->
+                        fileAdapter.showThumbnails = show
+                        fileAdapter.notifyDataSetChanged()
+                    }
+                }
             }
         }
     }
@@ -488,6 +505,7 @@ class FileExplorerFragment : Fragment() {
                 Snackbar.make(binding.root, "Path copied", Snackbar.LENGTH_SHORT).show()
             }
             R.id.action_home_shortcut -> pinFolderToHomeScreen(item)
+            R.id.action_note -> showNoteDialog(item)
             R.id.action_encrypt -> com.radiozport.ninegfiles.ui.dialogs.EncryptFileDialog.show(childFragmentManager, item) { success, msg ->
                 Snackbar.make(binding.root, msg, Snackbar.LENGTH_SHORT).show()
                 if (success) viewModel.refresh()
@@ -707,6 +725,45 @@ class FileExplorerFragment : Fragment() {
         }
     }
 
+    private fun showNoteDialog(item: FileItem) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val existing = try {
+                viewModel.repo.getNoteForFile(item.path).first()?.note ?: ""
+            } catch (e: Exception) { "" }
+
+            val editText = com.google.android.material.textfield.TextInputEditText(requireContext()).apply {
+                setText(existing)
+                hint = "Write a note about this file…"
+                minLines = 3
+                maxLines = 8
+                setSingleLine(false)
+                setPadding(48, 24, 48, 8)
+            }
+
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Note: ${item.name}")
+                .setView(editText)
+                .setPositiveButton("Save") { _, _ ->
+                    val text = editText.text?.toString()?.trim() ?: ""
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        if (text.isEmpty()) viewModel.repo.deleteNote(item.path)
+                        else viewModel.repo.upsertNote(item.path, text)
+                        Snackbar.make(binding.root,
+                            if (text.isEmpty()) "Note removed" else "Note saved",
+                            Snackbar.LENGTH_SHORT).show()
+                    }
+                }
+                .setNeutralButton("Delete Note") { _, _ ->
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        viewModel.repo.deleteNote(item.path)
+                        Snackbar.make(binding.root, "Note removed", Snackbar.LENGTH_SHORT).show()
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+    }
+
     // ─── File Opening ─────────────────────────────────────────────────────
 
     private fun openFile(item: FileItem) {
@@ -794,6 +851,21 @@ class FileExplorerFragment : Fragment() {
     fun navigateTo(path: String) {
         if (path.isNotEmpty()) viewModel.navigate(path)
     }
+
+    /**
+     * Returns the currently selected [FileItem]s in this pane.
+     * Used by DualPaneFragment to identify what to copy into the other pane.
+     */
+    fun getSelectedItems(): List<com.radiozport.ninegfiles.data.model.FileItem> =
+        viewModel.getSelectedFileItems()
+
+    /**
+     * Forces a re-scan of the current directory.
+     * Called by DualPaneFragment after a cross-pane copy completes so the
+     * destination pane reflects the new files without the user having to
+     * navigate away and back.
+     */
+    fun refresh() = viewModel.refresh()
 
     // ─── Transfer progress helpers ────────────────────────────────────────
 

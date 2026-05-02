@@ -48,10 +48,67 @@ class RecycleBinFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
+        setupSwipeGestures()
         setupEmptyButton()
         setupDriveSwitcher()
         setupTrashSelectionToolbar()
         observeViewModel()
+    }
+
+    /**
+     * Swipe right → restore to original location.
+     * Swipe left  → permanently delete (with confirmation).
+     *
+     * Gestures are suppressed while multi-select mode is active so accidental
+     * swipes during selection don't trigger destructive operations.
+     */
+    private fun setupSwipeGestures() {
+        val swipeCallback = object : androidx.recyclerview.widget.ItemTouchHelper.SimpleCallback(
+            0,
+            androidx.recyclerview.widget.ItemTouchHelper.LEFT or
+                    androidx.recyclerview.widget.ItemTouchHelper.RIGHT
+        ) {
+            override fun onMove(
+                rv: androidx.recyclerview.widget.RecyclerView,
+                vh: androidx.recyclerview.widget.RecyclerView.ViewHolder,
+                target: androidx.recyclerview.widget.RecyclerView.ViewHolder
+            ) = false
+
+            override fun isItemViewSwipeEnabled() = !isTrashSelectionMode
+
+            override fun onSwiped(
+                viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
+                direction: Int
+            ) {
+                val item = trashAdapter.itemAt(viewHolder.adapterPosition)
+                when (direction) {
+                    androidx.recyclerview.widget.ItemTouchHelper.RIGHT -> {
+                        // Restore — no confirmation needed
+                        viewModel.restoreFromTrash(item)
+                        com.google.android.material.snackbar.Snackbar
+                            .make(binding.root, "Restored: ${item.name}",
+                                com.google.android.material.snackbar.Snackbar.LENGTH_SHORT)
+                            .show()
+                    }
+                    androidx.recyclerview.widget.ItemTouchHelper.LEFT -> {
+                        // Permanent delete — confirm first; re-draw the item if cancelled
+                        MaterialAlertDialogBuilder(requireContext())
+                            .setTitle("Permanently delete \"${item.name}\"?")
+                            .setMessage("This cannot be undone.")
+                            .setPositiveButton("Delete") { _, _ ->
+                                viewModel.deleteFromTrash(item)
+                            }
+                            .setNegativeButton("Cancel") { _, _ ->
+                                // Snap the row back without deleting
+                                trashAdapter.notifyItemChanged(viewHolder.adapterPosition)
+                            }
+                            .show()
+                    }
+                }
+            }
+        }
+        androidx.recyclerview.widget.ItemTouchHelper(swipeCallback)
+            .attachToRecyclerView(binding.rvTrash)
     }
 
     private fun setupRecyclerView() {
@@ -265,6 +322,9 @@ class TrashAdapter(
                     notifyItemChanged(index)
             }
         }
+
+    /** Public accessor for the item at [position] — ListAdapter's getItem() is protected. */
+    fun itemAt(position: Int): TrashEntity = getItem(position)
 
     inner class TrashViewHolder(private val binding: ItemTrashEntryBinding) :
         RecyclerView.ViewHolder(binding.root) {

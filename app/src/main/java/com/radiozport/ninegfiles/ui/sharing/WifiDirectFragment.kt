@@ -23,7 +23,13 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import android.annotation.SuppressLint
+import android.app.PendingIntent
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import com.google.android.material.snackbar.Snackbar
+import com.radiozport.ninegfiles.NineGFilesApp
+import com.radiozport.ninegfiles.ui.main.MainActivity
 import com.radiozport.ninegfiles.R
 import com.radiozport.ninegfiles.databinding.FragmentWifiDirectBinding
 import kotlinx.coroutines.Dispatchers
@@ -61,9 +67,10 @@ class WifiDirectFragment : Fragment() {
 
     companion object {
         const val TRANSFER_PORT    = 49152
-        private const val CONNECT_TIMEOUT_MS = 10_000
-        private const val SOCKET_TIMEOUT_MS  = 30_000
-        private const val BUFFER_SIZE        = 65_536
+        private const val CONNECT_TIMEOUT_MS       = 10_000
+        private const val SOCKET_TIMEOUT_MS        = 30_000
+        private const val BUFFER_SIZE              = 65_536
+        private const val NOTIFICATION_WIFI_BASE_ID = 3000
     }
 
     // ─── Wi-Fi P2P ────────────────────────────────────────────────────────
@@ -506,6 +513,7 @@ class WifiDirectFragment : Fragment() {
                         _binding?.cardTransferProgress?.isVisible = false
                         appendLog("Received: ${dest.absolutePath} (${fileLen / 1024} KB)")
                         showSnack("File received → ${dest.name}")
+                        postReceiveNotification(dest.name, destDir.absolutePath)
                     }
                 }
             } catch (_: SocketException) {
@@ -777,6 +785,30 @@ class WifiDirectFragment : Fragment() {
 
     private fun showSnack(msg: String) =
         Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
+
+    // ─── Transfer completion notification ─────────────────────────────────
+    // Posted from the main thread so the system grants it even when the
+    // fragment is visible. Tapping opens MainActivity at the received folder.
+
+    @SuppressLint("MissingPermission")
+    private fun postReceiveNotification(fileName: String, folderPath: String) {
+        val tapIntent = PendingIntent.getActivity(
+            requireContext(), System.currentTimeMillis().toInt(),
+            Intent(requireContext(), MainActivity::class.java).apply {
+                putExtra("navigate_to", folderPath)
+            },
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        val notification = NotificationCompat.Builder(requireContext(), NineGFilesApp.CHANNEL_WIFI_DIRECT)
+            .setSmallIcon(R.drawable.ic_wifi_direct)
+            .setContentTitle("File received via Wi-Fi Direct")
+            .setContentText(fileName)
+            .setAutoCancel(true)
+            .setContentIntent(tapIntent)
+            .build()
+        NotificationManagerCompat.from(requireContext())
+            .notify(NOTIFICATION_WIFI_BASE_ID + fileName.hashCode(), notification)
+    }
 
     /** Swallows any secondary exception during cleanup so it never masks a real error. */
     private fun java.io.Closeable.closeQuietly() = try { close() } catch (_: Exception) {}

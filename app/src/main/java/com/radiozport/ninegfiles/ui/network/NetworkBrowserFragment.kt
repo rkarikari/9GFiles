@@ -1,10 +1,12 @@
 package com.radiozport.ninegfiles.ui.network
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -29,6 +31,8 @@ import jcifs.smb.SmbFile
 import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPFile
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -40,7 +44,28 @@ class NetworkBrowserFragment : Fragment() {
 
     private var activeConnection: NetworkConnectionItem? = null
     private var currentRemotePath = "/"
+
+    /** Directory breadcrumb stack for back-navigation within the remote browser. */
+    private val remoteDirStack = ArrayDeque<String>()
+
     private val savedConnections = mutableListOf<NetworkConnectionItem>()
+
+    // ─── Back-navigation within the remote browser ─────────────────────────
+    // When browsing into sub-directories, Back goes up one level instead of
+    // leaving the fragment entirely.
+
+    private val backCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            if (remoteDirStack.size > 1) {
+                remoteDirStack.removeLast()
+                currentRemotePath = remoteDirStack.last()
+                activeConnection?.let { loadRemoteDirectory(it, currentRemotePath) }
+            } else {
+                remoteDirStack.clear()
+                showConnectionList()
+            }
+        }
+    }
 
     private val cloudLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri ?: return@registerForActivityResult
@@ -57,12 +82,17 @@ class NetworkBrowserFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backCallback)
+
         (requireActivity() as AppCompatActivity).supportActionBar?.apply {
             title = "Network"
             subtitle = "Connections"
         }
 
         binding.rvConnections.layoutManager = LinearLayoutManager(requireContext())
+
+        // Load connections persisted across sessions.
+        loadPersistedConnections()
         showConnectionList()
 
         binding.fabAddConnection.setOnClickListener { showAddConnectionDialog() }
@@ -72,6 +102,8 @@ class NetworkBrowserFragment : Fragment() {
     // ─── Connection list ──────────────────────────────────────────────────
 
     private fun showConnectionList() {
+        backCallback.isEnabled = false
+        remoteDirStack.clear()
         binding.layoutRemoteBrowser.isVisible = false
         binding.layoutConnections.isVisible = true
         binding.rvConnections.adapter = ConnectionListAdapter(
@@ -85,6 +117,7 @@ class NetworkBrowserFragment : Fragment() {
     private fun showAddConnectionDialog() {
         AddConnectionDialog.show(childFragmentManager) { conn ->
             savedConnections.add(conn)
+            persistConnections()
             showConnectionList()
         }
     }
@@ -95,10 +128,56 @@ class NetworkBrowserFragment : Fragment() {
             .setMessage("Remove \"${conn.displayName}\"?")
             .setPositiveButton("Remove") { _, _ ->
                 savedConnections.remove(conn)
+                persistConnections()
                 showConnectionList()
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    // ─── Connection persistence (SharedPreferences + JSON) ─────────────────
+    // Credentials are stored in private mode — accessible only to this app.
+    // For higher security, migrate to EncryptedSharedPreferences.
+
+    private fun persistConnections() {
+        val arr = JSONArray()
+        savedConnections.forEach { conn ->
+            arr.put(JSONObject().apply {
+                put("displayName", conn.displayName)
+                put("protocol",    conn.protocol.name)
+                put("host",        conn.host)
+                put("port",        conn.port)
+                put("username",    conn.username)
+                put("password",    conn.password)
+                put("remotePath",  conn.remotePath)
+                put("isAnonymous", conn.isAnonymous)
+            })
+        }
+        requireContext()
+            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_CONNECTIONS, arr.toString()).apply()
+    }
+
+    private fun loadPersistedConnections() {
+        val json = requireContext()
+            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_CONNECTIONS, null) ?: return
+        runCatching {
+            val arr = JSONArray(json)
+            for (i in 0 until arr.length()) {
+                val o = arr.getJSONObject(i)
+                savedConnections.add(NetworkConnectionItem(
+                    displayName  = o.getString("displayName"),
+                    protocol     = NetworkProtocol.valueOf(o.getString("protocol")),
+                    host         = o.getString("host"),
+                    port         = o.getInt("port"),
+                    username     = o.optString("username"),
+                    password     = o.optString("password"),
+                    remotePath   = o.optString("remotePath", "/"),
+                    isAnonymous  = o.optBoolean("isAnonymous", false)
+                ))
+            }
+        }
     }
 
     // ─── FTP connection ───────────────────────────────────────────────────
@@ -106,6 +185,9 @@ class NetworkBrowserFragment : Fragment() {
     private fun connect(conn: NetworkConnectionItem) {
         activeConnection = conn
         currentRemotePath = conn.remotePath
+        remoteDirStack.clear()
+        remoteDirStack.addLast(currentRemotePath)
+        backCallback.isEnabled = true
         binding.layoutConnections.isVisible = false
         binding.layoutRemoteBrowser.isVisible = true
         binding.tvRemoteHost.text = "${conn.protocolLabel}: ${conn.host}"
@@ -132,6 +214,7 @@ class NetworkBrowserFragment : Fragment() {
                     binding.rvRemoteFiles.adapter = RemoteFileAdapter(entries) { entry ->
                         if (entry.isDirectory) {
                             currentRemotePath = "$path/${entry.name}".replace("//", "/")
+                            remoteDirStack.addLast(currentRemotePath)
                             loadRemoteDirectory(conn, currentRemotePath)
                         } else {
                             downloadFile(conn, "$path/${entry.name}", entry.name)
@@ -363,6 +446,11 @@ class NetworkBrowserFragment : Fragment() {
     }
 
     override fun onDestroyView() { super.onDestroyView(); _binding = null }
+
+    companion object {
+        private const val PREFS_NAME      = "network_connections"
+        private const val KEY_CONNECTIONS = "connections_json"
+    }
 
     // ─── Adapters ─────────────────────────────────────────────────────────
 

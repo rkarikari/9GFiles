@@ -29,9 +29,11 @@ import com.radiozport.ninegfiles.ui.dialogs.BatchRenameDialog
 import com.radiozport.ninegfiles.ui.explorer.FileExplorerViewModel
 import com.radiozport.ninegfiles.ui.explorer.FileExplorerViewModelFactory
 import com.radiozport.ninegfiles.utils.AppLockManager
+import com.radiozport.ninegfiles.utils.AppLockState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -40,8 +42,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
     private lateinit var appBarConfiguration: AppBarConfiguration
 
-    /** True while biometric auth is pending after the app returns from background */
-    private var lockPending = false
+    /** True while biometric auth is pending after the app returns from background.
+     *  The source of truth is [AppLockState] (set by the ProcessLifecycleObserver
+     *  in NineGFilesApp); this local flag is kept for immediate onResume reads
+     *  before the StateFlow collection starts. */
+    private var lockPending: Boolean
+        get()      = AppLockState.lockPending.value
+        set(value) { if (!value) AppLockState.consume() }
 
     val viewModel: FileExplorerViewModel by viewModels {
         FileExplorerViewModelFactory(application)
@@ -74,6 +81,19 @@ class MainActivity : AppCompatActivity() {
         observeViewModel()
         requestStoragePermissions()
         handleIncomingIntent(intent)
+        // Restore the last-visited folder on cold start (if preference is on and no explicit intent)
+        if (intent?.action == null || intent.action == Intent.ACTION_MAIN) {
+            lifecycleScope.launch {
+                val app = application as com.radiozport.ninegfiles.NineGFilesApp
+                val remember = app.preferences.rememberLastPath.first()
+                if (remember) {
+                    val lastPath = app.preferences.lastPath.first()
+                    if (lastPath.isNotEmpty() && java.io.File(lastPath).isDirectory) {
+                        viewModel.navigate(lastPath)
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -190,6 +210,14 @@ class MainActivity : AppCompatActivity() {
                                     .setAction("Dismiss") {}.show()
                             else -> {}
                         }
+                    }
+                }
+                // Apply / clear FLAG_KEEP_SCREEN_ON whenever the preference changes.
+                launch {
+                    (application as com.radiozport.ninegfiles.NineGFilesApp)
+                        .preferences.keepScreenOn.collectLatest { keep ->
+                        if (keep) window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                        else      window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                     }
                 }
             }
@@ -330,15 +358,18 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        // Mark lock as pending whenever app leaves foreground (but only if enabled)
-        if (AppLockManager.isAppLockEnabled(this)) lockPending = true
+        // NineGFilesApp's ProcessLifecycleObserver is the primary mechanism for
+        // setting the lock-pending flag across all entry points. MainActivity's
+        // onStop is a belt-and-suspenders backup for the case where the observer
+        // hasn't fired yet (e.g. the activity is the only one in the stack and
+        // the process is about to die).
+        if (AppLockManager.isAppLockEnabled(this)) AppLockState.markPendingIfEnabled(this)
     }
 
     override fun onResume() {
         super.onResume()
         if (lockPending && AppLockManager.isAppLockEnabled(this)) {
-            lockPending = false
-            // Dim the whole window so content isn't visible behind the prompt
+            lockPending = false          // clears AppLockState via the property setter
             binding.root.alpha = 0f
             AppLockManager.authenticate(
                 activity = this,
@@ -348,8 +379,7 @@ class MainActivity : AppCompatActivity() {
                 if (success) {
                     binding.root.alpha = 1f
                 } else {
-                    // Auth failed or cancelled — lock again and finish
-                    lockPending = true
+                    AppLockState.markPendingIfEnabled(this)   // re-arm for next resume
                     finish()
                 }
             }
@@ -393,21 +423,26 @@ class MainActivity : AppCompatActivity() {
         // Handle ACTION_OPEN_PATH from home screen shortcuts
         if (intent?.action == "com.radiozport.ninegfiles.ACTION_OPEN_PATH") {
             val path = intent.getStringExtra("open_path") ?: return
-            viewModel.navigate(path)
-            // Navigation will happen after navController is ready
-            navController.addOnDestinationChangedListener(object :
-                NavController.OnDestinationChangedListener {
-                override fun onDestinationChanged(
-                    controller: NavController,
-                    destination: androidx.navigation.NavDestination,
-                    arguments: Bundle?
-                ) {
-                    if (destination.id == R.id.homeFragment) {
-                        controller.navigate(R.id.explorerFragment)
-                        controller.removeOnDestinationChangedListener(this)
-                    }
-                }
-            })
+            openPathInExplorer(path)
         }
+        // Handle navigate_to from Wi-Fi Direct / other notification taps
+        intent?.getStringExtra("navigate_to")?.let { path -> openPathInExplorer(path) }
+    }
+
+    private fun openPathInExplorer(path: String) {
+        viewModel.navigate(path)
+        navController.addOnDestinationChangedListener(object :
+            NavController.OnDestinationChangedListener {
+            override fun onDestinationChanged(
+                controller: NavController,
+                destination: androidx.navigation.NavDestination,
+                arguments: Bundle?
+            ) {
+                if (destination.id == R.id.homeFragment) {
+                    controller.navigate(R.id.explorerFragment)
+                    controller.removeOnDestinationChangedListener(this)
+                }
+            }
+        })
     }
 }

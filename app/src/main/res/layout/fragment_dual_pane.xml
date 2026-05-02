@@ -66,6 +66,32 @@
             app:iconSize="16dp"
             app:iconGravity="textStart" />
 
+        <!-- Copy selection from active pane into the other pane's directory -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCopyToOther"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_marginTop="4dp"
+            android:text="→  Copy Selection Here"
+            android:textSize="12sp"
+            app:icon="@drawable/ic_content_copy"
+            app:iconSize="16dp"
+            app:iconGravity="textStart" />
+
+        <!-- Open the active pane's directory in the other pane -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOpenInOther"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_marginTop="4dp"
+            android:text="⊡  Open Dir in Other Pane"
+            android:textSize="12sp"
+            app:icon="@drawable/ic_folder_open"
+            app:iconSize="16dp"
+            app:iconGravity="textStart" />
+
     </LinearLayout>
 
     <View

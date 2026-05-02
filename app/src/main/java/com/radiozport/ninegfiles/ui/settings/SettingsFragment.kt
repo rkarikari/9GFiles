@@ -59,6 +59,8 @@ class SettingsFragment : Fragment() {
             binding.switchVibrate.isChecked       = prefs.vibrateOnAction.first()
             binding.switchDoubleTapBack.isChecked = prefs.doubleTapBack.first()
             binding.switchKeepPasteBar.isChecked  = prefs.keepPasteBar.first()
+            binding.switchKeepScreenOn.isChecked  = prefs.keepScreenOn.first()
+            binding.switchShowFileInfo.isChecked  = prefs.showFileInfo.first()
             binding.switchVaultDeleteOriginal.isChecked    = prefs.vaultDeleteOriginal.first()
             binding.switchVaultRestoreOnExport.isChecked   = prefs.vaultRestoreOnExport.first()
             binding.switchVaultDeleteAfterExport.isChecked = prefs.vaultDeleteAfterExport.first()
@@ -81,6 +83,20 @@ class SettingsFragment : Fragment() {
 
             val density = prefs.listDensity.first()
             binding.tvCurrentDensity.text = density.replaceFirstChar { it.uppercase() }
+
+            // ── New preferences ───────────────────────────────────────────────
+            binding.switchRememberLastPath.isChecked = prefs.rememberLastPath.first()
+            binding.switchShowThumbnails.isChecked   = prefs.showThumbnails.first()
+
+            val trashDays = prefs.trashAutoCleanDays.first()
+            binding.tvTrashAutoClean.text = if (trashDays == 0) "Never" else "$trashDays days"
+
+            val dateFormatPref = prefs.dateFormat.first()
+            binding.tvDateFormat.text = when (dateFormatPref) {
+                "short"  -> "Short (4/30/26)"
+                "iso"    -> "ISO 8601 (2026-04-30)"
+                else     -> "Medium (Apr 30, 2026)"
+            }
         }
     }
 
@@ -105,6 +121,15 @@ class SettingsFragment : Fragment() {
         }
         binding.switchKeepPasteBar.setOnCheckedChangeListener { _, c ->
             lifecycleScope.launch { prefs.setKeepPasteBar(c) }
+        }
+        binding.switchKeepScreenOn.setOnCheckedChangeListener { _, keep ->
+            lifecycleScope.launch { prefs.setKeepScreenOn(keep) }
+            // Apply FLAG_KEEP_SCREEN_ON to the current window immediately.
+            if (keep) requireActivity().window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            else      requireActivity().window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+        binding.switchShowFileInfo.setOnCheckedChangeListener { _, c ->
+            lifecycleScope.launch { prefs.setShowFileInfo(c) }
         }
         binding.switchVaultDeleteOriginal.setOnCheckedChangeListener { _, c ->
             lifecycleScope.launch { prefs.setVaultDeleteOriginal(c) }
@@ -148,6 +173,16 @@ class SettingsFragment : Fragment() {
                 .getPackageInfo(requireContext().packageName, 0).versionName
         }"
         binding.tvCopyright.text = getString(R.string.app_copyright)
+
+        // ── New settings ─────────────────────────────────────────────────────
+        binding.switchRememberLastPath.setOnCheckedChangeListener { _, c ->
+            lifecycleScope.launch { prefs.setRememberLastPath(c) }
+        }
+        binding.switchShowThumbnails.setOnCheckedChangeListener { _, c ->
+            lifecycleScope.launch { prefs.setShowThumbnails(c) }
+        }
+        binding.btnTrashAutoClean.setOnClickListener { showTrashAutoCleanDialog() }
+        binding.btnDateFormat.setOnClickListener { showDateFormatDialog() }
     }
 
     private fun showDensityDialog() {
@@ -279,6 +314,33 @@ class SettingsFragment : Fragment() {
                 }
             }
             .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showTrashAutoCleanDialog() {
+        val options = arrayOf("Never", "7 days", "15 days", "30 days", "60 days", "90 days")
+        val days    = intArrayOf(0, 7, 15, 30, 60, 90)
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Auto-clean Trash After")
+            .setItems(options) { _, which ->
+                val d = days[which]
+                lifecycleScope.launch { prefs.setTrashAutoCleanDays(d) }
+                binding.tvTrashAutoClean.text = if (d == 0) "Never" else "$d days"
+            }
+            .show()
+    }
+
+    private fun showDateFormatDialog() {
+        val options = arrayOf("Short  (4/30/26)", "Medium  (Apr 30, 2026)", "ISO 8601  (2026-04-30)")
+        val values  = arrayOf("short", "medium", "iso")
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Date Format")
+            .setItems(options) { _, which ->
+                val v = values[which]
+                lifecycleScope.launch { prefs.setDateFormat(v) }
+                binding.tvDateFormat.text = options[which].substringBefore("  (")
+                    .trim() + " — " + options[which].substringAfter("  (").trimEnd(')')
+            }
             .show()
     }
 

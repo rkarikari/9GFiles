@@ -71,17 +71,19 @@ class BookmarksFragment : Fragment() {
                 val position = viewHolder.adapterPosition
                 val item = bookmarkAdapter.currentList[position]
                 viewLifecycleOwner.lifecycleScope.launch {
-                    (requireActivity().application as NineGFilesApp).fileRepository.removeBookmark(item.path)
-                }
-                Snackbar.make(binding.root, "Bookmark removed", Snackbar.LENGTH_LONG)
-                    .setAction("Undo") {
-                        viewLifecycleOwner.lifecycleScope.launch {
-                            val repo = (requireActivity().application as NineGFilesApp).fileRepository
-                            // Re-add bookmark (simplified, without original FileItem)
+                    val repo = (requireActivity().application as NineGFilesApp).fileRepository
+                    repo.removeBookmark(item.path)
+                    Snackbar.make(binding.root, "Bookmark removed", Snackbar.LENGTH_LONG)
+                        .setAction("Undo") {
+                            // Re-insert the exact entity that was removed so all
+                            // fields (emoji, addedAt, isDirectory) are preserved.
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                repo.restoreBookmark(item)
+                            }
                         }
-                    }
-                    .setAnchorView(R.id.bottomNav)
-                    .show()
+                        .setAnchorView(R.id.bottomNav)
+                        .show()
+                }
             }
         }
         ItemTouchHelper(swipeCallback).attachToRecyclerView(binding.rvBookmarks)

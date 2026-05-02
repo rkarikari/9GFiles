@@ -42,8 +42,7 @@ data class TrashEntity(
 )
 
 @Entity(tableName = "search_history")
-data class SearchHistoryEntity(
-    @PrimaryKey val query: String,
+data class SearchHistoryEntity(    @PrimaryKey val query: String,
     val usedAt: Long = System.currentTimeMillis(),
     val useCount: Int = 1
 )
@@ -164,6 +163,10 @@ interface SearchHistoryDao {
 
     @Query("DELETE FROM search_history")
     suspend fun clearAll()
+
+    /** Remove entries not used since [threshold] (epoch millis). */
+    @Query("DELETE FROM search_history WHERE usedAt < :threshold")
+    suspend fun deleteOlderThan(threshold: Long)
 }
 
 @Dao
@@ -181,8 +184,37 @@ interface RecentFolderDao {
     suspend fun clearAll()
 }
 
-// ─── Database ─────────────────────────────────────────────────────────────────
+// ─── File Notes ───────────────────────────────────────────────────────────────
 
+@Entity(tableName = "file_notes")
+data class FileNoteEntity(
+    @PrimaryKey val filePath: String,
+    val note: String,
+    val updatedAt: Long = System.currentTimeMillis()
+)
+
+@Dao
+interface FileNoteDao {
+    @Query("SELECT * FROM file_notes WHERE filePath = :path")
+    fun getNoteForFile(path: String): Flow<FileNoteEntity?>
+
+    @Query("SELECT * FROM file_notes ORDER BY updatedAt DESC")
+    fun getAllNotes(): Flow<List<FileNoteEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertNote(note: FileNoteEntity)
+
+    @Query("DELETE FROM file_notes WHERE filePath = :path")
+    suspend fun deleteNoteByPath(path: String)
+
+    @Query("DELETE FROM file_notes")
+    suspend fun clearAll()
+
+    @Query("SELECT EXISTS(SELECT 1 FROM file_notes WHERE filePath = :path AND note != '')")
+    suspend fun hasNote(path: String): Boolean
+}
+
+// ─── Database ─────────────────────────────────────────────────────────────────
 @Database(
     entities = [
         BookmarkEntity::class,
@@ -190,9 +222,10 @@ interface RecentFolderDao {
         FileTagEntity::class,
         TrashEntity::class,
         SearchHistoryEntity::class,
-        RecentFolderEntity::class
+        RecentFolderEntity::class,
+        FileNoteEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class FileManagerDatabase : RoomDatabase() {
@@ -202,4 +235,5 @@ abstract class FileManagerDatabase : RoomDatabase() {
     abstract fun trashDao(): TrashDao
     abstract fun searchHistoryDao(): SearchHistoryDao
     abstract fun recentFolderDao(): RecentFolderDao
+    abstract fun fileNoteDao(): FileNoteDao
 }

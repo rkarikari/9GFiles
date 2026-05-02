@@ -19,6 +19,7 @@ data class FileItem(
     val canWrite: Boolean,
     val childCount: Int = 0,         // for folders
     val isBookmarked: Boolean = false,
+    val hasNote: Boolean = false,
     val isFavorite: Boolean = false,
     val tags: List<String> = emptyList()
 ) : Parcelable {

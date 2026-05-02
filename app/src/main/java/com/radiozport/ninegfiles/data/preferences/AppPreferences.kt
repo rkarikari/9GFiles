@@ -2,8 +2,7 @@ package com.radiozport.ninegfiles.data.preferences
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.*
-import androidx.datastore.preferences.preferencesDataStore
+import androidx.datastore.preferences.core.*import androidx.datastore.preferences.preferencesDataStore
 import com.radiozport.ninegfiles.data.model.SortOption
 import com.radiozport.ninegfiles.data.model.ViewMode
 import kotlinx.coroutines.flow.Flow
@@ -36,6 +35,26 @@ class AppPreferences(private val context: Context) {
         val KEY_VAULT_DELETE_ORIGINAL     = booleanPreferencesKey("vault_delete_original")   // default true
         val KEY_VAULT_RESTORE_ON_EXPORT   = booleanPreferencesKey("vault_restore_on_export") // default true
         val KEY_VAULT_DELETE_AFTER_EXPORT = booleanPreferencesKey("vault_delete_after_export") // default true
+
+        // ── Image viewer ──────────────────────────────────────────────────────
+        val KEY_SLIDESHOW_INTERVAL     = intPreferencesKey("slideshow_interval_sec")   // default 4
+        val KEY_SLIDESHOW_LOOP         = booleanPreferencesKey("slideshow_loop")        // default true
+
+        // ── Media player ──────────────────────────────────────────────────────
+        val KEY_PLAYER_SPEED           = floatPreferencesKey("player_speed")            // default 1.0
+        val KEY_PLAYER_REPEAT_MODE     = stringPreferencesKey("player_repeat_mode")     // OFF | ALL | ONE
+        val KEY_PLAYER_SHUFFLE         = booleanPreferencesKey("player_shuffle")         // default false
+
+        // ── Text editor ──────────────────────────────────────────────────────
+        val KEY_EDITOR_WORD_WRAP       = booleanPreferencesKey("editor_word_wrap")      // default true
+        val KEY_EDITOR_FONT_SIZE       = intPreferencesKey("editor_font_size")          // sp, default 14
+        val KEY_EDITOR_SHOW_LINE_NUMS  = booleanPreferencesKey("editor_line_numbers")   // default true
+
+        // ── Advanced ─────────────────────────────────────────────────────────
+        val KEY_TRASH_AUTO_CLEAN_DAYS  = intPreferencesKey("trash_auto_clean_days")     // 0 = off; default 30
+        val KEY_DATE_FORMAT            = stringPreferencesKey("date_format")            // short | medium | iso
+        val KEY_REMEMBER_LAST_PATH     = booleanPreferencesKey("remember_last_path")    // default true
+        val KEY_SHOW_THUMBNAILS        = booleanPreferencesKey("show_thumbnails")        // default true
     }
 
     val sortOption: Flow<SortOption> = context.dataStore.data.map { prefs ->
@@ -90,6 +109,14 @@ class AppPreferences(private val context: Context) {
         prefs[KEY_LIST_DENSITY] ?: "normal"
     }
 
+    val showFileInfo: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[KEY_SHOW_FILE_INFO] ?: true
+    }
+
+    val keepScreenOn: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[KEY_KEEP_SCREEN_ON] ?: false
+    }
+
     val keepPasteBar: Flow<Boolean> = context.dataStore.data.map { prefs ->
         prefs[KEY_KEEP_PASTE_BAR] ?: false
     }
@@ -104,6 +131,14 @@ class AppPreferences(private val context: Context) {
 
     val vaultDeleteAfterExport: Flow<Boolean> = context.dataStore.data.map { prefs ->
         prefs[KEY_VAULT_DELETE_AFTER_EXPORT] ?: true
+    }
+
+    suspend fun setShowFileInfo(show: Boolean) {
+        context.dataStore.edit { it[KEY_SHOW_FILE_INFO] = show }
+    }
+
+    suspend fun setKeepScreenOn(keep: Boolean) {
+        context.dataStore.edit { it[KEY_KEEP_SCREEN_ON] = keep }
     }
 
     suspend fun setKeepPasteBar(keep: Boolean) {
@@ -181,4 +216,64 @@ class AppPreferences(private val context: Context) {
     suspend fun setAccentColor(color: Int) {
         context.dataStore.edit { it[KEY_ACCENT_COLOR] = color }
     }
+
+    // ── Image Viewer ─────────────────────────────────────────────────────────
+
+    val slideshowInterval: Flow<Int> = context.dataStore.data.map { prefs ->
+        prefs[KEY_SLIDESHOW_INTERVAL] ?: 4
+    }
+    val slideshowLoop: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[KEY_SLIDESHOW_LOOP] ?: true
+    }
+    suspend fun setSlideshowInterval(sec: Int) { context.dataStore.edit { it[KEY_SLIDESHOW_INTERVAL] = sec } }
+    suspend fun setSlideshowLoop(loop: Boolean) { context.dataStore.edit { it[KEY_SLIDESHOW_LOOP] = loop } }
+
+    // ── Media Player ─────────────────────────────────────────────────────────
+
+    val playerSpeed: Flow<Float> = context.dataStore.data.map { prefs ->
+        prefs[KEY_PLAYER_SPEED] ?: 1.0f
+    }
+    val playerRepeatMode: Flow<String> = context.dataStore.data.map { prefs ->
+        prefs[KEY_PLAYER_REPEAT_MODE] ?: "OFF"
+    }
+    val playerShuffle: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[KEY_PLAYER_SHUFFLE] ?: false
+    }
+    suspend fun setPlayerSpeed(speed: Float) { context.dataStore.edit { it[KEY_PLAYER_SPEED] = speed } }
+    suspend fun setPlayerRepeatMode(mode: String) { context.dataStore.edit { it[KEY_PLAYER_REPEAT_MODE] = mode } }
+    suspend fun setPlayerShuffle(enabled: Boolean) { context.dataStore.edit { it[KEY_PLAYER_SHUFFLE] = enabled } }
+
+    // ── Text Editor ──────────────────────────────────────────────────────────
+
+    val editorWordWrap: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[KEY_EDITOR_WORD_WRAP] ?: true
+    }
+    val editorFontSize: Flow<Int> = context.dataStore.data.map { prefs ->
+        prefs[KEY_EDITOR_FONT_SIZE] ?: 14
+    }
+    val editorShowLineNumbers: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[KEY_EDITOR_SHOW_LINE_NUMS] ?: true
+    }
+    suspend fun setEditorWordWrap(wrap: Boolean) { context.dataStore.edit { it[KEY_EDITOR_WORD_WRAP] = wrap } }
+    suspend fun setEditorFontSize(sp: Int) { context.dataStore.edit { it[KEY_EDITOR_FONT_SIZE] = sp } }
+    suspend fun setEditorShowLineNumbers(show: Boolean) { context.dataStore.edit { it[KEY_EDITOR_SHOW_LINE_NUMS] = show } }
+
+    // ── Advanced ─────────────────────────────────────────────────────────────
+
+    val trashAutoCleanDays: Flow<Int> = context.dataStore.data.map { prefs ->
+        prefs[KEY_TRASH_AUTO_CLEAN_DAYS] ?: 30
+    }
+    val dateFormat: Flow<String> = context.dataStore.data.map { prefs ->
+        prefs[KEY_DATE_FORMAT] ?: "medium"
+    }
+    val rememberLastPath: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[KEY_REMEMBER_LAST_PATH] ?: true
+    }
+    val showThumbnails: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[KEY_SHOW_THUMBNAILS] ?: true
+    }
+    suspend fun setTrashAutoCleanDays(days: Int) { context.dataStore.edit { it[KEY_TRASH_AUTO_CLEAN_DAYS] = days } }
+    suspend fun setDateFormat(format: String) { context.dataStore.edit { it[KEY_DATE_FORMAT] = format } }
+    suspend fun setRememberLastPath(remember: Boolean) { context.dataStore.edit { it[KEY_REMEMBER_LAST_PATH] = remember } }
+    suspend fun setShowThumbnails(show: Boolean) { context.dataStore.edit { it[KEY_SHOW_THUMBNAILS] = show } }
 }

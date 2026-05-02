@@ -172,5 +172,52 @@
                 android:mediaRouteTypes="user"
                 android:contentDescription="Cast to TV" />
         </LinearLayout>
+
+        <!-- Second row: Speed / Repeat / Shuffle / Sleep -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingTop="4dp"
+            android:paddingBottom="8dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSpeed"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="1.0×"
+                android:textSize="13sp"
+                android:layout_marginEnd="8dp"
+                android:contentDescription="Playback speed" />
+
+            <ImageButton
+                android:id="@+id/btnRepeat"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_menu_directions"
+                android:contentDescription="Repeat mode"
+                android:layout_marginEnd="8dp" />
+
+            <ImageButton
+                android:id="@+id/btnShuffle"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_tune"
+                android:contentDescription="Shuffle"
+                android:layout_marginEnd="8dp" />
+
+            <ImageButton
+                android:id="@+id/btnSleepTimer"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_history"
+                android:contentDescription="Sleep timer" />
+
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>
