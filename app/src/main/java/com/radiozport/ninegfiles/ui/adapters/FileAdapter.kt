@@ -267,6 +267,16 @@ class FileAdapter(
     ) {
         val type = item.fileType
 
+        // ── Always reset to a clean baseline first ────────────────────────
+        // RecyclerView recycles ViewHolders, so a holder that previously showed
+        // a zero-padded thumbnail would carry that state into the next bind
+        // (e.g. a folder icon), making icons render at inconsistent sizes.
+        // Resetting here guarantees every bind starts from the same state.
+        val defaultPadPx = (8 * context.resources.displayMetrics.density).toInt()
+        imageView.setPadding(defaultPadPx, defaultPadPx, defaultPadPx, defaultPadPx)
+        imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+        imageView.imageTintList = null
+
         // ── Container background (type-colour pill) ───────────────────────
         if (container != null) {
             if (showFileTypeIcons) {
@@ -280,6 +290,31 @@ class FileAdapter(
         // ── Try to load a real preview when thumbnails are enabled ────────
         if (showThumbnails) {
             when (type) {
+                FileType.FOLDER -> {
+                    // A folder's lastModified() updates whenever files inside change.
+                    // Using it as the Glide signature means the cached thumbnail is
+                    // automatically invalidated on any add/remove/rename activity.
+                    val firstImage = findFirstImageInFolder(item.file)
+                    if (firstImage != null) {
+                        imageView.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+                        imageView.setPadding(0, 0, 0, 0)
+                        imageView.imageTintList = null
+                        Glide.with(context)
+                            .load(firstImage)
+                            .apply(
+                                RequestOptions()
+                                    .placeholder(R.drawable.ic_folder)
+                                    .error(R.drawable.ic_folder)
+                                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                    .signature(com.bumptech.glide.signature.ObjectKey(item.file.lastModified()))
+                                    .override(300, 300)
+                                    .centerCrop()
+                            )
+                            .into(imageView)
+                        return
+                    }
+                    // No image found — fall through to static folder icon
+                }
                 FileType.IMAGE -> {
                     imageView.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
                     imageView.setPadding(0, 0, 0, 0)
@@ -290,7 +325,8 @@ class FileAdapter(
                             RequestOptions()
                                 .placeholder(R.drawable.ic_file_image)
                                 .error(R.drawable.ic_file_image)
-                                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                .signature(com.bumptech.glide.signature.ObjectKey(item.file.lastModified()))
                                 .override(300, 300)
                                 .centerCrop()
                         )
@@ -307,7 +343,8 @@ class FileAdapter(
                             RequestOptions()
                                 .placeholder(R.drawable.ic_file_video)
                                 .error(R.drawable.ic_file_video)
-                                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                .signature(com.bumptech.glide.signature.ObjectKey(item.file.lastModified()))
                                 .override(300, 300)
                                 .centerCrop()
                                 .frame(1_000_000L)
@@ -327,7 +364,7 @@ class FileAdapter(
                                 RequestOptions()
                                     .placeholder(R.drawable.ic_file_audio)
                                     .error(R.drawable.ic_file_audio)
-                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                                     .override(300, 300)
                                     .centerCrop()
                             )
@@ -339,9 +376,8 @@ class FileAdapter(
                 FileType.APK -> {
                     val apkDrawable = extractApkIcon(context, item.path)
                     if (apkDrawable != null) {
-                        imageView.scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
-                        val padPx = (12 * context.resources.displayMetrics.density).toInt()
-                        imageView.setPadding(padPx, padPx, padPx, padPx)
+                        imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                        imageView.setPadding(0, 0, 0, 0)
                         imageView.imageTintList = null
                         Glide.with(context).clear(imageView)
                         imageView.setImageDrawable(apkDrawable)
@@ -354,10 +390,11 @@ class FileAdapter(
         }
 
         // ── Static / fallback icon ────────────────────────────────────────
+        // Do NOT call setPadding here — the XML layout already defines the
+        // correct padding for each view type (6 dp for list, proportional for
+        // grid). Overriding it programmatically was shrinking icons to nothing.
         Glide.with(context).clear(imageView)
-        imageView.scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
-        val padPx = (8 * context.resources.displayMetrics.density).toInt()
-        imageView.setPadding(padPx, padPx, padPx, padPx)
+        imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
         imageView.setImageResource(getIconForType(type))
 
         // Apply category colour tint to the vector icon when showFileTypeIcons=true
@@ -381,6 +418,18 @@ class FileAdapter(
             setColor(alphaBg)
             cornerRadius = radiusPx
         }
+    }
+
+    /**
+     * Returns the first image file found directly inside [folder] (non-recursive,
+     * top-level only, sorted by name for a stable result).
+     * Returns null if the folder is empty or contains no images.
+     */
+    private fun findFirstImageInFolder(folder: java.io.File): java.io.File? {
+        val imageExts = setOf("jpg", "jpeg", "png", "webp", "gif", "bmp", "heic", "heif")
+        return folder.listFiles()
+            ?.filter { it.isFile && it.extension.lowercase() in imageExts }
+            ?.minByOrNull { it.name.lowercase() }
     }
 
     /**

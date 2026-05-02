@@ -246,8 +246,16 @@ class ImageViewerFragment : Fragment() {
                     item.file.outputStream().use { rotated.compress(format, 95, it) }
                     rotated.recycle()
                     withContext(Dispatchers.Main) {
-                        // Reload the page by invalidating the adapter
-                        binding.viewPager.adapter?.notifyItemChanged(binding.viewPager.currentItem)
+                        val adapter = binding.viewPager.adapter as? ImagePagerAdapter ?: return@withContext
+                        val pos = binding.viewPager.currentItem
+                        // bumpVersion changes the item ID → FragmentStateAdapter destroys
+                        // the old fragment and calls createFragment() fresh.
+                        // notifyDataSetChanged() is required (not notifyItemChanged) for
+                        // FragmentStateAdapter to pick up the new item IDs.
+                        adapter.bumpVersion(item.path)
+                        adapter.notifyDataSetChanged()
+                        // The new SingleImageFragment will load with the updated
+                        // lastModified() signature, so Glide reads the rotated file.
                         android.widget.Toast.makeText(requireContext(), "Rotated 90°", android.widget.Toast.LENGTH_SHORT).show()
                     }
                 } catch (e: Exception) {
@@ -540,7 +548,31 @@ class ImageViewerFragment : Fragment() {
     }
 
     inner class ImagePagerAdapter : FragmentStateAdapter(this) {
+        /** Bumped for a given path when the file is mutated (e.g. rotated) so the adapter
+         *  returns a new unique item ID, forcing FragmentStateAdapter to destroy and
+         *  recreate the page fragment and reload the updated bitmap from disk. */
+        private val versions = mutableMapOf<String, Int>()
+
+        fun bumpVersion(path: String) {
+            versions[path] = (versions[path] ?: 0) + 1
+        }
+
         override fun getItemCount() = imageFiles.size
+
+        override fun getItemId(position: Int): Long {
+            val path = imageFiles.getOrNull(position)?.path ?: return position.toLong()
+            val version = versions[path] ?: 0
+            return (path.hashCode().toLong() shl 16) or version.toLong()
+        }
+
+        override fun containsItem(itemId: Long) =
+            imageFiles.any { file ->
+                val path = file.path
+                val version = versions[path] ?: 0
+                val expected = (path.hashCode().toLong() shl 16) or version.toLong()
+                expected == itemId
+            }
+
         override fun createFragment(position: Int) =
             SingleImageFragment.newInstance(imageFiles[position].path)
     }
@@ -569,9 +601,11 @@ class SingleImageFragment : Fragment() {
 
         val path = arguments?.getString(ImageViewerFragment.ARG_PATH) ?: return
 
+        val file = File(path)
         Glide.with(this)
-            .load(File(path))
-            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .load(file)
+            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+            .signature(com.bumptech.glide.signature.ObjectKey(file.lastModified()))
             .into(binding.imageView)
 
         setupZoom()

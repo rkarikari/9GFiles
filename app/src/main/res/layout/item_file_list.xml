@@ -42,7 +42,7 @@
                 android:background="@drawable/bg_icon_rounded"
                 android:contentDescription="File icon"
                 android:padding="8dp"
-                android:scaleType="centerInside"
+                android:scaleType="fitCenter"
                 tools:src="@drawable/ic_folder" />
 
             <!-- Checkmark when selected -->
