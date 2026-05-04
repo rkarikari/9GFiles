@@ -105,9 +105,9 @@ class Id3TagEditorDialog : BottomSheetDialogFragment() {
             }
             val et = TextInputEditText(til.context).apply {
                 setText(init ?: "")
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
                 )
             }
             til.addView(et)
