@@ -5,20 +5,28 @@ import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
+import android.view.ViewConfiguration
 import android.widget.FrameLayout
+import android.widget.OverScroller
+import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.abs
 
 /**
- * A FrameLayout that adds pinch-to-zoom and horizontal panning to its single
- * RecyclerView child. Zoom is applied via scaleX/Y + translationX on the child
- * so Android's view system correctly inverse-transforms touch coordinates,
- * keeping RecyclerView's own vertical scrolling fully functional while zoomed.
+ * A FrameLayout that adds pinch-to-zoom and free (diagonal) panning to its
+ * single RecyclerView child.
  *
- * Gesture handling:
- *  - Pinch          → zoom (1x – 5x)
- *  - Double-tap     → toggle 2.5x / reset to 1x
- *  - Horizontal drag while zoomed → pan left/right
- *  - Vertical drag  → passed through to RecyclerView (normal page scrolling)
+ * Transform strategy:
+ *  - Scale  → scaleX/Y on the child (pivot at top-left)
+ *  - Horizontal pan → child.translationX  (managed here via OverScroller)
+ *  - Vertical pan   → RecyclerView.scrollBy / fling  (RecyclerView owns its
+ *                     own scroll state, so we delegate instead of translationY
+ *                     to keep item recycling and page layout correct)
+ *
+ * Gestures:
+ *  - Pinch           → zoom 1x – 5x
+ *  - Double-tap      → toggle 2.5x / reset to 1x
+ *  - Any drag while zoomed → free diagonal pan (X + Y simultaneously)
+ *  - Fling while zoomed    → momentum on both axes
  */
 class PdfZoomContainer @JvmOverloads constructor(
     context: Context,
@@ -28,16 +36,20 @@ class PdfZoomContainer @JvmOverloads constructor(
     private var scaleFactor = 1f
     private var transX = 0f
 
-    // ── Scale gesture (pinch-to-zoom) ──────────────────────────────────────
+    // ── Fling / momentum ────────────────────────────────────────────────────
+
+    private val scroller = OverScroller(context)
+    private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
+
+    // ── Pinch-to-zoom ───────────────────────────────────────────────────────
 
     private val scaleDetector = ScaleGestureDetector(context,
         object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
             override fun onScale(detector: ScaleGestureDetector): Boolean {
-                val prevScale = scaleFactor
+                val prev = scaleFactor
                 scaleFactor = (scaleFactor * detector.scaleFactor).coerceIn(MIN_SCALE, MAX_SCALE)
-                if (scaleFactor != prevScale) {
-                    // Shift transX so the pinch focus point stays fixed on screen
-                    transX = detector.focusX - (scaleFactor / prevScale) * (detector.focusX - transX)
+                if (scaleFactor != prev) {
+                    transX = detector.focusX - (scaleFactor / prev) * (detector.focusX - transX)
                     clampTransX()
                 }
                 applyTransform()
@@ -45,7 +57,7 @@ class PdfZoomContainer @JvmOverloads constructor(
             }
         })
 
-    // ── Gesture detector (double-tap + horizontal pan) ──────────────────────
+    // ── Pan + fling (all directions when zoomed) ────────────────────────────
 
     private val gestureDetector = GestureDetector(context,
         object : GestureDetector.SimpleOnGestureListener() {
@@ -54,23 +66,47 @@ class PdfZoomContainer @JvmOverloads constructor(
                 e1: MotionEvent?, e2: MotionEvent,
                 distanceX: Float, distanceY: Float
             ): Boolean {
-                // Only steal horizontal scroll; vertical goes to the RecyclerView
-                if (scaleFactor > 1f && abs(distanceX) >= abs(distanceY)) {
-                    transX -= distanceX
-                    clampTransX()
-                    applyTransform()
-                    return true
-                }
-                return false
+                if (scaleFactor <= 1f) return false
+
+                // Horizontal component → translationX on the container
+                transX -= distanceX
+                clampTransX()
+                applyTransform()
+
+                // Vertical component → RecyclerView's own scroll (preserves
+                // item recycling and keeps scroll state consistent)
+                (getChildAt(0) as? RecyclerView)?.scrollBy(0, distanceY.toInt())
+
+                return true
+            }
+
+            override fun onFling(
+                e1: MotionEvent?, e2: MotionEvent,
+                velocityX: Float, velocityY: Float
+            ): Boolean {
+                if (scaleFactor <= 1f) return false
+
+                // Horizontal fling via OverScroller → translationX animation
+                val minX = (-(scaleFactor - 1f) * width).toInt()
+                scroller.fling(
+                    transX.toInt(), 0,
+                    velocityX.toInt(), 0,
+                    minX, 0,
+                    0, 0
+                )
+                postInvalidateOnAnimation()
+
+                // Vertical fling delegated directly to RecyclerView
+                (getChildAt(0) as? RecyclerView)?.fling(0, (-velocityY).toInt())
+
+                return true
             }
 
             override fun onDoubleTap(e: MotionEvent): Boolean {
                 if (scaleFactor > 1f) {
-                    // Reset
                     scaleFactor = 1f
                     transX = 0f
                 } else {
-                    // Zoom to 2.5× centred on the tap point
                     scaleFactor = DOUBLE_TAP_SCALE
                     transX = e.x - scaleFactor * e.x
                     clampTransX()
@@ -80,7 +116,19 @@ class PdfZoomContainer @JvmOverloads constructor(
             }
         })
 
-    // ── Apply transform to the child RecyclerView ───────────────────────────
+    // ── Horizontal fling animation tick ─────────────────────────────────────
+
+    override fun computeScroll() {
+        super.computeScroll()
+        if (scroller.computeScrollOffset()) {
+            transX = scroller.currX.toFloat()
+            clampTransX()
+            applyTransform()
+            postInvalidateOnAnimation()
+        }
+    }
+
+    // ── Transform helpers ────────────────────────────────────────────────────
 
     private fun applyTransform() {
         val child = getChildAt(0) ?: return
@@ -92,12 +140,11 @@ class PdfZoomContainer @JvmOverloads constructor(
     }
 
     private fun clampTransX() {
-        // Allow panning left until the right edge of the scaled content reaches screen right
         val minTransX = -(scaleFactor - 1f) * width
         transX = transX.coerceIn(minTransX, 0f)
     }
 
-    // ── Touch interception ──────────────────────────────────────────────────
+    // ── Touch interception ───────────────────────────────────────────────────
 
     private var downX = 0f
     private var downY = 0f
@@ -107,16 +154,17 @@ class PdfZoomContainer @JvmOverloads constructor(
             MotionEvent.ACTION_DOWN -> {
                 downX = ev.x
                 downY = ev.y
+                if (!scroller.isFinished) scroller.abortAnimation()
             }
-            // Two fingers down — intercept immediately for pinch handling
-            MotionEvent.ACTION_POINTER_DOWN -> return true
+            MotionEvent.ACTION_POINTER_DOWN -> return true  // start of pinch
             MotionEvent.ACTION_MOVE -> {
                 if (ev.pointerCount > 1) return true
                 if (scaleFactor > 1f) {
                     val dx = abs(ev.x - downX)
                     val dy = abs(ev.y - downY)
-                    // Intercept horizontal drag while zoomed (for panning)
-                    if (dx > dy && dx > TOUCH_SLOP) return true
+                    // Intercept as soon as either axis exceeds touch slop —
+                    // this allows diagonal panning from the very first move.
+                    if (dx > touchSlop || dy > touchSlop) return true
                 }
             }
         }
@@ -124,7 +172,9 @@ class PdfZoomContainer @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(ev: MotionEvent): Boolean {
-        // Give scale detector first priority so it can consume multi-touch
+        if (ev.actionMasked == MotionEvent.ACTION_DOWN && !scroller.isFinished) {
+            scroller.abortAnimation()
+        }
         scaleDetector.onTouchEvent(ev)
         if (!scaleDetector.isInProgress) {
             gestureDetector.onTouchEvent(ev)
@@ -132,18 +182,18 @@ class PdfZoomContainer @JvmOverloads constructor(
         return true
     }
 
-    // ── Public API ──────────────────────────────────────────────────────────
+    // ── Public API ───────────────────────────────────────────────────────────
 
     fun resetZoom() {
+        scroller.abortAnimation()
         scaleFactor = 1f
         transX = 0f
         applyTransform()
     }
 
     companion object {
-        private const val MIN_SCALE = 1f
-        private const val MAX_SCALE = 5f
+        private const val MIN_SCALE       = 1f
+        private const val MAX_SCALE       = 5f
         private const val DOUBLE_TAP_SCALE = 2.5f
-        private const val TOUCH_SLOP = 8f
     }
 }

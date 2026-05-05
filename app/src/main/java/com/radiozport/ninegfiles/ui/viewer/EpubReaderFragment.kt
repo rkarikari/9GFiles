@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.w3c.dom.Element
@@ -22,7 +23,8 @@ import javax.xml.parsers.DocumentBuilderFactory
  * Simple ePub reader.  An ePub is just a ZIP file whose OPF manifest lists
  * the chapter HTML/XHTML files in spine order.  We parse the OPF with the
  * standard XML DOM parser (no library needed), extract each chapter's HTML,
- * inject a legible CSS reset, and render it in a WebView.
+ * inject a legible CSS reset, embed all images as base64 data-URIs (so they
+ * render correctly without needing a real base URL), and display in a WebView.
  */
 class EpubReaderFragment : Fragment() {
 
@@ -43,10 +45,11 @@ class EpubReaderFragment : Fragment() {
     private lateinit var btnChapters: MaterialButton
     private lateinit var progressBar: ProgressBar
 
-    private var chapters:   List<Chapter> = emptyList()
-    private var currentIdx: Int = 0
-    private var zipFile:    ZipFile? = null
-    private var epubTitle:  String = "eBook"
+    private var chapters:        List<Chapter> = emptyList()
+    private var currentIdx:      Int = 0
+    private var zipFile:         ZipFile? = null
+    private var epubTitle:       String = "eBook"
+    private var chapterLoadJob:  Job? = null   // cancellable per-chapter load
 
     // ---------- lifecycle -----------------------------------------------
 
@@ -127,7 +130,7 @@ class EpubReaderFragment : Fragment() {
 
         // ── web view ─────────────────────────────────────────────────────
         webView = WebView(ctx).apply {
-            settings.javaScriptEnabled  = false
+            settings.javaScriptEnabled   = false
             settings.builtInZoomControls = true
             settings.displayZoomControls = false
             webViewClient = WebViewClient()
@@ -210,24 +213,53 @@ class EpubReaderFragment : Fragment() {
 
     // ---------- rendering -----------------------------------------------
 
+    /**
+     * Loads a chapter into the WebView.  Runs IO work (HTML + image reads)
+     * on a background thread; any previous in-flight load is cancelled first.
+     */
     private fun showChapter(idx: Int) {
         currentIdx = idx
-        val ch = chapters[idx]
-        val html = readEntry(ch.entryName) ?: "<p>Could not load chapter.</p>"
-        val enriched = injectStyle(html, ch.basePath)
-        webView.loadDataWithBaseURL("epub://content/", enriched, "text/html", "UTF-8", null)
+        chapterLoadJob?.cancel()
 
-        tvProgress.text = "${idx + 1} / ${chapters.size}"
-        btnPrev.isEnabled = idx > 0
-        btnNext.isEnabled = idx < chapters.size - 1
+        // Disable nav buttons while loading to prevent double-taps
+        btnPrev.isEnabled = false
+        btnNext.isEnabled = false
+        progressBar.isVisible = true
+
+        chapterLoadJob = viewLifecycleOwner.lifecycleScope.launch {
+            val ch = chapters[idx]
+
+            // Read + process entirely on IO so the main thread is never blocked
+            val finalHtml = withContext(Dispatchers.IO) {
+                val raw      = readEntry(ch.entryName) ?: "<p>Could not load chapter.</p>"
+                val styled   = injectStyle(raw)
+                embedImages(styled, ch.basePath)   // replace <img src> with base64 data-URIs
+            }
+
+            if (!isAdded) return@launch
+
+            progressBar.isVisible = false
+            // Use file:///android_asset/ as a safe, neutral base URL.
+            // All images are already embedded as data-URIs so no relative
+            // URL resolution is needed by the WebView.
+            webView.loadDataWithBaseURL(
+                "file:///android_asset/", finalHtml, "text/html", "UTF-8", null
+            )
+
+            tvProgress.text  = "${idx + 1} / ${chapters.size}"
+            btnPrev.isEnabled = idx > 0
+            btnNext.isEnabled = idx < chapters.size - 1
+        }
     }
 
-    private fun injectStyle(html: String, @Suppress("UNUSED_PARAMETER") basePath: String): String {
+    // ── CSS injection ────────────────────────────────────────────────────────
+
+    private fun injectStyle(html: String): String {
         val css = """
             <style>
               body { font-family: serif; font-size: 18px; line-height: 1.7;
                      padding: 16px; max-width: 720px; margin: auto; word-wrap: break-word; }
-              img  { max-width: 100%; height: auto; }
+              img  { display: block; max-width: 100%; height: auto; margin: 8px auto; }
               pre, code { font-size: 0.85em; background: #f4f4f4; padding: 4px; border-radius: 4px; }
             </style>
         """.trimIndent()
@@ -237,9 +269,87 @@ class EpubReaderFragment : Fragment() {
             "<!DOCTYPE html><html><head>$css</head><body>$html</body></html>"
     }
 
+    // ── Image embedding ──────────────────────────────────────────────────────
+
+    /**
+     * Finds every <img src="..."> (and <image href/xlink:href for SVG/EPUB3)
+     * in [html], reads the corresponding ZIP entry relative to [chapterBasePath],
+     * and replaces the src with a base64 data-URI so the WebView can display it
+     * without needing a resolvable base URL.
+     */
+    private fun embedImages(html: String, chapterBasePath: String): String {
+        // Match src="..." and href="..." / xlink:href="..." on img / image elements.
+        // The regex is intentionally broad; we guard against non-image hrefs below.
+        val imgSrcRegex = Regex(
+            """(<(?:img|image)[^>]*?\s)(?:src|href|xlink:href)=(["'])([^"']+)\2""",
+            setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
+        )
+
+        return imgSrcRegex.replace(html) { match ->
+            val prefix = match.groupValues[1]   // "<img " or "<image "
+            val quote  = match.groupValues[2]   // " or '
+            val src    = match.groupValues[3]
+
+            // Skip already-embedded data URIs and absolute http(s) URLs
+            if (src.startsWith("data:", ignoreCase = true) ||
+                src.startsWith("http://", ignoreCase = true) ||
+                src.startsWith("https://", ignoreCase = true)) {
+                return@replace match.value
+            }
+
+            val zipPath = resolvePath(chapterBasePath, src)
+            val bytes   = readEntryBytes(zipPath) ?: return@replace match.value
+
+            val mime = mimeForPath(zipPath)
+            val b64  = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
+            // Reconstruct the tag attribute with the data-URI
+            "${prefix}src=$quote data:$mime;base64,$b64 $quote"
+        }
+    }
+
+    /**
+     * Resolves [href] relative to [basePath] inside the ZIP, handling ".." segments.
+     * Examples:
+     *   resolvePath("OEBPS/Text", "../Images/fig1.png") → "OEBPS/Images/fig1.png"
+     *   resolvePath("OEBPS",      "Images/fig1.png")    → "OEBPS/Images/fig1.png"
+     *   resolvePath("",           "Images/fig1.png")    → "Images/fig1.png"
+     */
+    private fun resolvePath(basePath: String, href: String): String {
+        // Absolute path within the ZIP
+        if (href.startsWith("/")) return href.trimStart('/')
+        val combined = if (basePath.isEmpty()) href else "$basePath/$href"
+        val segments = combined.split("/")
+        val result   = mutableListOf<String>()
+        for (seg in segments) {
+            when {
+                seg == ".."      -> if (result.isNotEmpty()) result.removeAt(result.lastIndex)
+                seg == "." || seg.isEmpty() -> { /* skip */ }
+                else             -> result.add(seg)
+            }
+        }
+        return result.joinToString("/")
+    }
+
+    private fun mimeForPath(path: String): String = when {
+        path.endsWith(".png",  ignoreCase = true) -> "image/png"
+        path.endsWith(".gif",  ignoreCase = true) -> "image/gif"
+        path.endsWith(".svg",  ignoreCase = true) -> "image/svg+xml"
+        path.endsWith(".webp", ignoreCase = true) -> "image/webp"
+        path.endsWith(".bmp",  ignoreCase = true) -> "image/bmp"
+        else                                       -> "image/jpeg"
+    }
+
+    // ── ZIP helpers ──────────────────────────────────────────────────────────
+
     private fun readEntry(entryName: String): String? = try {
         zipFile?.getEntry(entryName)?.let { entry ->
             zipFile!!.getInputStream(entry).use { it.reader(Charsets.UTF_8).readText() }
+        }
+    } catch (_: Exception) { null }
+
+    private fun readEntryBytes(entryName: String): ByteArray? = try {
+        zipFile?.getEntry(entryName)?.let { entry ->
+            zipFile!!.getInputStream(entry).use { it.readBytes() }
         }
     } catch (_: Exception) { null }
 
@@ -280,14 +390,14 @@ class EpubReaderFragment : Fragment() {
             }
 
             // 4. Follow the spine
-            val result    = mutableListOf<Chapter>()
+            val result     = mutableListOf<Chapter>()
             val spineItems = opfDoc.getElementsByTagName("itemref")
             for (i in 0 until spineItems.length) {
                 val idref = (spineItems.item(i) as? Element)?.getAttribute("idref") ?: continue
                 val href  = manifest[idref] ?: continue
                 val fullPath = if (opfBase.isNotEmpty()) "$opfBase/$href" else href
                 result.add(Chapter(
-                    title    = "Chapter ${result.size + 1}",
+                    title     = "Chapter ${result.size + 1}",
                     entryName = fullPath,
                     basePath  = fullPath.substringBeforeLast("/", "")
                 ))
@@ -320,6 +430,7 @@ class EpubReaderFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        chapterLoadJob?.cancel()
         webView.destroy()
         super.onDestroyView()
     }

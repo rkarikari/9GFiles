@@ -183,8 +183,10 @@ class FileAdapter(
             binding.tvName.text = displayName(item)
             binding.tvSize.text = item.formattedSize
             binding.tvDate.text = formatDate(item.lastModified)
+            binding.tvTime.text = formatTime(item.lastModified)
             binding.tvSize.visibility = if (showFileInfo && !item.isDirectory) View.VISIBLE else View.GONE
             binding.tvDate.visibility = if (showFileInfo) View.VISIBLE else View.GONE
+            binding.tvTime.visibility = if (showFileInfo) View.VISIBLE else View.GONE
             loadFileIcon(binding.root.context, item, binding.ivIcon, binding.iconContainer)
             updateSelection(isSelected)
             binding.ivBookmark.visibility = if (item.isBookmarked) View.VISIBLE else View.GONE
@@ -504,7 +506,9 @@ class FileAdapter(
     }
 
     private val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+    private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     private fun formatDate(timestamp: Long) = dateFormat.format(Date(timestamp))
+    private fun formatTime(timestamp: Long) = timeFormat.format(Date(timestamp))
 }
 
 // ─── DiffUtil Callback ────────────────────────────────────────────────────────
