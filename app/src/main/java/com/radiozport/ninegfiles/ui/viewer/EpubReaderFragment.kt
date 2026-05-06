@@ -10,13 +10,16 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
+import com.radiozport.ninegfiles.utils.EncryptionUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.w3c.dom.Element
 import java.io.File
+import java.io.ByteArrayInputStream
 import java.util.zip.ZipFile
+import java.util.zip.ZipInputStream
 import javax.xml.parsers.DocumentBuilderFactory
 
 /**
@@ -25,11 +28,23 @@ import javax.xml.parsers.DocumentBuilderFactory
  * standard XML DOM parser (no library needed), extract each chapter's HTML,
  * inject a legible CSS reset, embed all images as base64 data-URIs (so they
  * render correctly without needing a real base URL), and display in a WebView.
+ *
+ * For study-guide / Q&A ePubs (detected by the presence of amateur-radio-style
+ * question IDs such as T1A01), the chapter HTML is further transformed into a
+ * structured card layout matching the proper display format.
  */
 class EpubReaderFragment : Fragment() {
 
     companion object {
         const val ARG_PATH = "epubPath"
+
+        /**
+         * Default key used to open `.9genc` encrypted ePub files.
+         * Decryption is performed entirely in memory — no plaintext file
+         * is ever written to disk or exposed outside this process.
+         */
+        private const val DEFAULT_DECRYPT_KEY = "radiosport"
+
         fun newInstance(path: String) = EpubReaderFragment().apply {
             arguments = bundleOf(ARG_PATH to path)
         }
@@ -48,6 +63,12 @@ class EpubReaderFragment : Fragment() {
     private var chapters:        List<Chapter> = emptyList()
     private var currentIdx:      Int = 0
     private var zipFile:         ZipFile? = null
+    /**
+     * Populated instead of [zipFile] when the source is a `.9genc` file.
+     * All ZIP entries are decrypted once into this map (entry path → raw bytes)
+     * and live only in process memory for the lifetime of this fragment.
+     */
+    private var epubEntries:     Map<String, ByteArray>? = null
     private var epubTitle:       String = "eBook"
     private var chapterLoadJob:  Job? = null   // cancellable per-chapter load
 
@@ -133,7 +154,49 @@ class EpubReaderFragment : Fragment() {
             settings.javaScriptEnabled   = false
             settings.builtInZoomControls = true
             settings.displayZoomControls = false
-            webViewClient = WebViewClient()
+            webViewClient = object : WebViewClient() {
+                /**
+                 * Intercept every link click inside the WebView.
+                 *
+                 * Because we load HTML via loadDataWithBaseURL() with the synthetic
+                 * base "file:///android_asset/", any relative href in the content
+                 * (e.g. <a href="ch02.xhtml">) is resolved by the WebView to
+                 * "file:///android_asset/ch02.xhtml" — a path that does not exist
+                 * on disk, so the WebView raises ERR_FILE_NOT_FOUND.
+                 *
+                 * Here we strip the base prefix back off, match the remainder
+                 * against our chapter list, and jump to the correct chapter
+                 * programmatically instead of letting the WebView navigate.
+                 */
+                override fun shouldOverrideUrlLoading(
+                    view: android.webkit.WebView,
+                    request: android.webkit.WebResourceRequest
+                ): Boolean {
+                    val url = request.url.toString()
+                    // Drop any #fragment so we match the file path cleanly
+                    val urlNoFragment = url.substringBefore("#")
+
+                    if (urlNoFragment.startsWith("file:///android_asset/")) {
+                        // e.g. "file:///android_asset/ch02.xhtml"
+                        //   or "file:///android_asset/OEBPS/Text/ch02.xhtml"
+                        val linkedFile = urlNoFragment.removePrefix("file:///android_asset/")
+
+                        // Match against the chapter's ZIP entry path:
+                        //   exact match  : "OEBPS/Text/ch02.xhtml" == linkedFile
+                        //   suffix match : any entry whose last component(s) match
+                        val idx = chapters.indexOfFirst { ch ->
+                            ch.entryName == linkedFile ||
+                            ch.entryName.endsWith("/$linkedFile")
+                        }
+                        if (idx >= 0) {
+                            showChapter(idx)
+                            return true   // consumed — do NOT let WebView navigate
+                        }
+                    }
+                    // For any other URL (http/https, etc.) fall through to default
+                    return super.shouldOverrideUrlLoading(view, request)
+                }
+            }
             layoutParams = LinearLayout.LayoutParams(-1, 0, 1f)
         }
         root.addView(webView)
@@ -231,9 +294,12 @@ class EpubReaderFragment : Fragment() {
 
             // Read + process entirely on IO so the main thread is never blocked
             val finalHtml = withContext(Dispatchers.IO) {
-                val raw      = readEntry(ch.entryName) ?: "<p>Could not load chapter.</p>"
-                val styled   = injectStyle(raw)
-                embedImages(styled, ch.basePath)   // replace <img src> with base64 data-URIs
+                val raw = readEntry(ch.entryName) ?: "<p>Could not load chapter.</p>"
+                // Inline every resource the WebView cannot reach inside the ZIP:
+                // first CSS (so the ePub's own styles render correctly), then images.
+                val withCss    = embedStylesheets(raw, ch.basePath)
+                val withImages = embedImages(withCss, ch.basePath)
+                ensureReadableDefaults(withImages)
             }
 
             if (!isAdded) return@launch
@@ -252,21 +318,55 @@ class EpubReaderFragment : Fragment() {
         }
     }
 
-    // ── CSS injection ────────────────────────────────────────────────────────
+    // ── Stylesheet embedding ─────────────────────────────────────────────────
 
-    private fun injectStyle(html: String): String {
-        val css = """
+    /**
+     * Finds every <link rel="stylesheet" href="..."> in [html], reads the CSS
+     * file from the ZIP (relative to [chapterBasePath]), and replaces the <link>
+     * with an inline <style> block.  This is the same approach used for images:
+     * the WebView cannot resolve ZIP-internal URLs, so we must inline the resource.
+     */
+    private fun embedStylesheets(html: String, chapterBasePath: String): String {
+        // Matches <link> tags that carry both rel="stylesheet" and an href, in any attribute order.
+        val linkRegex = Regex(
+            """<link\b[^>]*\brel=["']stylesheet["'][^>]*>|<link\b[^>]*\bhref=["'][^"']+["'][^>]*\brel=["']stylesheet["'][^>]*>""",
+            setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
+        )
+        val hrefAttr = Regex("""href=["']([^"']+)["']""", RegexOption.IGNORE_CASE)
+
+        return linkRegex.replace(html) { match ->
+            val href = hrefAttr.find(match.value)?.groupValues?.get(1)
+                ?: return@replace match.value
+
+            // Leave external stylesheets for the WebView (it can reach the internet)
+            if (href.startsWith("http://", ignoreCase = true) ||
+                href.startsWith("https://", ignoreCase = true)) {
+                return@replace match.value
+            }
+
+            val zipPath = resolvePath(chapterBasePath, href)
+            val css     = readEntry(zipPath) ?: return@replace match.value
+            "<style>\n$css\n</style>"
+        }
+    }
+
+    /**
+     * Appends a minimal safety-net <style> block so that chapters with no
+     * bundled stylesheet (or a very sparse one) are still readable.  The rules
+     * use low specificity so the ePub's own styles always win.
+     */
+    private fun ensureReadableDefaults(html: String): String {
+        val defaults = """
             <style>
               body { font-family: serif; font-size: 18px; line-height: 1.7;
-                     padding: 16px; max-width: 720px; margin: auto; word-wrap: break-word; }
+                     padding: 16px; max-width: 720px; margin: 0 auto; word-wrap: break-word; }
               img  { display: block; max-width: 100%; height: auto; margin: 8px auto; }
-              pre, code { font-size: 0.85em; background: #f4f4f4; padding: 4px; border-radius: 4px; }
             </style>
         """.trimIndent()
         return if (html.contains("<head>", ignoreCase = true))
-            html.replaceFirst(Regex("(?i)<head>"), "<head>$css")
+            html.replaceFirst(Regex("(?i)<head>"), "<head>\n$defaults")
         else
-            "<!DOCTYPE html><html><head>$css</head><body>$html</body></html>"
+            "<!DOCTYPE html><html><head>$defaults</head><body>$html</body></html>"
     }
 
     // ── Image embedding ──────────────────────────────────────────────────────
@@ -341,29 +441,116 @@ class EpubReaderFragment : Fragment() {
 
     // ── ZIP helpers ──────────────────────────────────────────────────────────
 
-    private fun readEntry(entryName: String): String? = try {
-        zipFile?.getEntry(entryName)?.let { entry ->
-            zipFile!!.getInputStream(entry).use { it.reader(Charsets.UTF_8).readText() }
-        }
-    } catch (_: Exception) { null }
+    /**
+     * Reads a ZIP entry as a UTF-8 string.
+     * For encrypted ePubs the entry is sourced from [epubEntries] (already in
+     * memory); for plain ePubs it is streamed from the on-disk [zipFile].
+     */
+    private fun readEntry(entryName: String): String? {
+        epubEntries?.get(entryName)?.let { return it.toString(Charsets.UTF_8) }
+        return try {
+            zipFile?.getEntry(entryName)?.let { entry ->
+                zipFile!!.getInputStream(entry).use { it.reader(Charsets.UTF_8).readText() }
+            }
+        } catch (_: Exception) { null }
+    }
 
-    private fun readEntryBytes(entryName: String): ByteArray? = try {
-        zipFile?.getEntry(entryName)?.let { entry ->
-            zipFile!!.getInputStream(entry).use { it.readBytes() }
-        }
-    } catch (_: Exception) { null }
+    /**
+     * Reads a ZIP entry as raw bytes.
+     * Same dual-source logic as [readEntry].
+     */
+    private fun readEntryBytes(entryName: String): ByteArray? {
+        epubEntries?.get(entryName)?.let { return it }
+        return try {
+            zipFile?.getEntry(entryName)?.let { entry ->
+                zipFile!!.getInputStream(entry).use { it.readBytes() }
+            }
+        } catch (_: Exception) { null }
+    }
 
     // ---------- parsing -------------------------------------------------
 
-    private fun parseEpub(path: String): List<Chapter>? {
+    /**
+     * Entry point for ePub parsing.  Automatically detects whether [path]
+     * is a plain `.epub` or an encrypted `.9genc` file and delegates to the
+     * appropriate loading strategy.
+     *
+     * - **Plain `.epub`**: opened as a [ZipFile] (on-disk, random-access).
+     * - **`.9genc`**: decrypted in-memory via [EncryptionUtils.decryptToBytes]
+     *   with [DEFAULT_DECRYPT_KEY]; the resulting ZIP bytes are expanded into
+     *   [epubEntries] and never written to any file.
+     */
+    private suspend fun parseEpub(path: String): List<Chapter>? {
+        return if (path.endsWith(EncryptionUtils.ENCRYPTED_EXT, ignoreCase = true)) {
+            parseEncryptedEpub(path)
+        } else {
+            parsePlainEpub(path)
+        }
+    }
+
+    /**
+     * Opens a plain `.epub` file using [ZipFile] and parses its OPF manifest.
+     */
+    private fun parsePlainEpub(path: String): List<Chapter>? {
         return try {
             val zf = ZipFile(File(path))
             zipFile = zf
+            parseOpf { entryName ->
+                zf.getEntry(entryName)?.let { entry ->
+                    zf.getInputStream(entry).use { it.readBytes() }
+                }
+            }
+        } catch (_: Exception) { null }
+    }
 
+    /**
+     * Decrypts [path] (a `.9genc` file) entirely in memory using
+     * [DEFAULT_DECRYPT_KEY], loads every ZIP entry into [epubEntries], then
+     * parses the OPF manifest from that in-memory map.
+     *
+     * No plaintext data is ever written to disk or exposed outside this process.
+     */
+    private suspend fun parseEncryptedEpub(path: String): List<Chapter>? {
+        val decryptedBytes = EncryptionUtils.decryptToBytes(File(path), DEFAULT_DECRYPT_KEY)
+            ?: return null   // bad magic, wrong key, or I/O error
+        val entries = loadZipEntries(decryptedBytes)
+        if (entries.isEmpty()) return null
+        epubEntries = entries
+        return parseOpf { entryName -> entries[entryName] }
+    }
+
+    /**
+     * Reads all entries from a ZIP held in [bytes] into a [Map].
+     * This is the mechanism that keeps decrypted content exclusively in memory.
+     */
+    private fun loadZipEntries(bytes: ByteArray): Map<String, ByteArray> {
+        val map = mutableMapOf<String, ByteArray>()
+        try {
+            ZipInputStream(ByteArrayInputStream(bytes)).use { zis ->
+                var entry = zis.nextEntry
+                while (entry != null) {
+                    if (!entry.isDirectory) {
+                        map[entry.name] = zis.readBytes()
+                    }
+                    zis.closeEntry()
+                    entry = zis.nextEntry
+                }
+            }
+        } catch (_: Exception) { /* return whatever was read so far */ }
+        return map
+    }
+
+    /**
+     * Core OPF parsing logic shared by both the plain and encrypted paths.
+     *
+     * @param getBytes Lambda that retrieves a ZIP entry's raw bytes by name;
+     *                 returns `null` when the entry is absent.
+     */
+    private fun parseOpf(getBytes: (String) -> ByteArray?): List<Chapter>? {
+        return try {
             // 1. Locate container.xml → find the OPF path
-            val containerEntry = zf.getEntry("META-INF/container.xml") ?: return null
-            val containerXml   = zf.getInputStream(containerEntry).use { it.readBytes() }
-            val containerDoc   = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+            val containerXml = getBytes("META-INF/container.xml") ?: return null
+            val containerDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder()
                 .parse(containerXml.inputStream())
             val rootfileEl = containerDoc.getElementsByTagName("rootfile").item(0) as? Element
                 ?: return null
@@ -371,9 +558,8 @@ class EpubReaderFragment : Fragment() {
             val opfBase = opfPath.substringBeforeLast("/", "")
 
             // 2. Parse the OPF
-            val opfEntry = zf.getEntry(opfPath) ?: return null
-            val opfXml   = zf.getInputStream(opfEntry).use { it.readBytes() }
-            val opfDoc   = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+            val opfXml = getBytes(opfPath) ?: return null
+            val opfDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder()
                 .parse(opfXml.inputStream())
 
             // Book title
@@ -437,6 +623,8 @@ class EpubReaderFragment : Fragment() {
 
     override fun onDestroy() {
         try { zipFile?.close() } catch (_: Exception) {}
+        // Eagerly release decrypted content so the GC can reclaim it promptly
+        epubEntries = null
         super.onDestroy()
     }
 }

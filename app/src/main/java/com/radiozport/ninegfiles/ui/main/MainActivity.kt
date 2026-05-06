@@ -176,6 +176,11 @@ class MainActivity : AppCompatActivity() {
                 R.id.homeFragment, R.id.explorerFragment, R.id.searchFragment,
                 R.id.toolsFragment, R.id.bookmarksFragment)
             binding.bottomNav.visibility = if (showBottom) android.view.View.VISIBLE else android.view.View.GONE
+            // Only reserve space for the bottom nav when it is actually visible.
+            // Without this, full-screen viewers (ePub, PDF, media, …) inherit an
+            // 80 dp dead zone at the bottom even though the nav bar is hidden.
+            val bottomPad = if (showBottom) (80 * resources.displayMetrics.density).toInt() else 0
+            binding.navHostFragment.setPadding(0, 0, 0, bottomPad)
         }
     }
 

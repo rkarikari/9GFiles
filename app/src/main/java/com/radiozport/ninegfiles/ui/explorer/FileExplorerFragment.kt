@@ -788,7 +788,8 @@ class FileExplorerFragment : Fragment() {
             FileType.APK -> rootNavController.navigate(R.id.apkInfoFragment,
                 android.os.Bundle().apply { putString("apkPath", item.path) })
             FileType.CODE, FileType.DOCUMENT -> {
-                if (item.extension.lowercase() == "epub")
+                val ext = item.extension.lowercase()
+                if (ext == "epub" || ext == "9genc")
                     rootNavController.navigate(R.id.epubReaderFragment,
                         android.os.Bundle().apply { putString("epubPath", item.path) })
                 else if (com.radiozport.ninegfiles.utils.FileUtils.isTextFile(item.file))

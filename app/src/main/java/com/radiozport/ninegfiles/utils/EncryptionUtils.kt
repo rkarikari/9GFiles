@@ -137,6 +137,51 @@ object EncryptionUtils {
         }
     }
 
+    // ─── In-memory decrypt ────────────────────────────────────────────────
+
+    /**
+     * Decrypts [source] entirely into a [ByteArray] held in process memory.
+     * No intermediate file is written; the caller is responsible for clearing
+     * the returned array when it is no longer needed.
+     *
+     * Returns `null` if the file is not a valid 9GEF container, the password
+     * is wrong, or any I/O error occurs.
+     */
+    suspend fun decryptToBytes(
+        source: File,
+        password: String
+    ): ByteArray? = withContext(Dispatchers.IO) {
+        try {
+            FileInputStream(source).use { fis ->
+                // Validate header
+                val magic = ByteArray(4).also { fis.read(it) }
+                if (String(magic, Charsets.US_ASCII) != MAGIC) return@withContext null
+
+                val version = fis.read().toByte()
+                if (version != VERSION) return@withContext null
+
+                val salt = ByteArray(SALT_LEN).also { fis.read(it) }
+                val iv   = ByteArray(IV_LEN).also  { fis.read(it) }
+                val key  = deriveKey(password, salt)
+
+                val cipher = Cipher.getInstance("AES/GCM/NoPadding").apply {
+                    init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(TAG_LEN, iv))
+                }
+
+                val bos = java.io.ByteArrayOutputStream()
+                val buf = ByteArray(BUFFER_SIZE)
+                var read: Int
+                while (fis.read(buf).also { read = it } != -1) {
+                    bos.write(cipher.update(buf, 0, read))
+                }
+                // doFinal verifies the GCM authentication tag; throws on wrong password
+                bos.write(cipher.doFinal())
+                bos.toByteArray()
+            }
+        } catch (_: javax.crypto.AEADBadTagException) { null }
+          catch (_: Exception)                         { null }
+    }
+
     // ─── Helpers ──────────────────────────────────────────────────────────
 
     fun isEncrypted(file: File): Boolean = file.name.endsWith(ENCRYPTED_EXT)

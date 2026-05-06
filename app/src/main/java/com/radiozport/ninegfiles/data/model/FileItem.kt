@@ -84,7 +84,8 @@ enum class FileType(val iconRes: Int, val colorRes: Int) {
             "mp4", "mkv", "avi", "mov", "wmv", "flv", "3gp", "webm", "m4v", "ts" -> VIDEO
             "mp3", "flac", "aac", "wav", "ogg", "m4a", "wma", "opus", "aiff" -> AUDIO
             "pdf" -> PDF
-            "doc", "docx", "odt", "rtf", "txt", "md", "html", "htm", "xml", "json", "yaml", "yml", "epub" -> DOCUMENT
+            "doc", "docx", "odt", "rtf", "txt", "md", "html", "htm", "xml", "json", "yaml", "yml", "epub",
+            "9genc" -> DOCUMENT
             "zip", "rar", "7z", "tar", "gz", "bz2", "xz", "tar.gz", "tar.bz2", "tar.xz" -> ARCHIVE
             "apk", "xapk", "apks" -> APK
             "kt", "java", "py", "js", "ts", "cpp", "c", "h", "cs", "go", "rb", "php", "swift", "rs" -> CODE
@@ -125,6 +126,7 @@ object MimeTypeHelper {
         "tar" -> "application/x-tar"
         "gz" -> "application/gzip"
         "epub" -> "application/epub+zip"
+        "9genc" -> "application/epub+zip"   // encrypted ePub — same underlying format
         "apk" -> "application/vnd.android.package-archive"
         "txt" -> "text/plain"
         "html", "htm" -> "text/html"

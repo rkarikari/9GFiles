@@ -587,7 +587,7 @@ class HomeFragment : Fragment() {
                 nav.navigate(R.id.action_home_to_apk_info,
                     Bundle().apply { putString("apkPath", item.path) })
             item.fileType == FileType.CODE || item.fileType == FileType.DOCUMENT -> when {
-                item.extension.lowercase() == "epub" ->
+                item.extension.lowercase() == "epub" || item.extension.lowercase() == "9genc" ->
                     nav.navigate(R.id.action_home_to_epub_reader,
                         Bundle().apply { putString("epubPath", item.path) })
                 FileUtils.isTextFile(item.file) ->
