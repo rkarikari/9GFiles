@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9GFiles — Publisher Tool</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg:        #0d0f0e;
+    --surface:   #141714;
+    --border:    #252925;
+    --border-hi: #344034;
+    --amber:     #e8a020;
+    --amber-dim: #a06810;
+    --amber-glow:#e8a02022;
+    --green:     #4caf6e;
+    --red:       #e05050;
+    --text:      #d4d8d4;
+    --text-dim:  #6a7a6a;
+    --text-hi:   #eef2ee;
+    --mono:      'IBM Plex Mono', monospace;
+    --sans:      'IBM Plex Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Scanline texture ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,.08) 2px,
+      rgba(0,0,0,.08) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* ── Layout ── */
+  .shell {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    margin-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+  }
+  .logo-mark {
+    font-family: var(--mono);
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--amber);
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+  .logo-mark span { color: var(--text-dim); }
+  .header-meta {
+    margin-bottom: 2px;
+  }
+  .header-meta h1 {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-hi);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .header-meta p {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+  }
+  .version-badge {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--amber-dim);
+    border: 1px solid var(--amber-dim);
+    padding: 3px 8px;
+    border-radius: 2px;
+    letter-spacing: .06em;
+    margin-bottom: 4px;
+  }
+
+  /* ── Section cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,.02);
+  }
+  .step-num {
+    width: 22px; height: 22px;
+    background: var(--amber);
+    color: #000;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .card-header h2 {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text-hi);
+  }
+  .card-header .hint {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+  }
+  .card-body { padding: 20px; }
+
+  /* ── Key input ── */
+  .key-area {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.7;
+    padding: 12px;
+    resize: vertical;
+    min-height: 140px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .key-area:focus { border-color: var(--amber-dim); }
+  .key-area::placeholder { color: var(--text-dim); }
+
+  /* ── Key status bar ── */
+  .key-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    min-height: 36px;
+    transition: all .2s;
+  }
+  .key-status.valid   { border-color: #344034; background: #141f14; }
+  .key-status.invalid { border-color: #3d2020; background: #1a1010; }
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    flex-shrink: 0;
+    transition: background .2s;
+  }
+  .key-status.valid .status-dot   { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .key-status.invalid .status-dot { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+  .key-status .fp {
+    color: var(--text-dim);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .key-status.valid .fp { color: var(--green); }
+
+  /* ── Drop zone ── */
+  .drop-zone {
+    border: 1.5px dashed var(--border-hi);
+    border-radius: 4px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .15s;
+    position: relative;
+  }
+  .drop-zone:hover,
+  .drop-zone.dragover {
+    border-color: var(--amber-dim);
+    background: var(--amber-glow);
+  }
+  .drop-zone input[type=file] {
+    position: absolute; inset: 0;
+    opacity: 0; cursor: pointer;
+    width: 100%; height: 100%;
+  }
+  .drop-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+    opacity: .5;
+  }
+  .drop-label {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .drop-label strong { color: var(--amber); }
+  .drop-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    letter-spacing: .05em;
+  }
+
+  /* ── File list ── */
+  .file-list {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .file-row {
+    display: grid;
+    grid-template-columns: 1fr 80px 110px;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 11px;
+    animation: rowIn .15s ease;
+  }
+  @keyframes rowIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .file-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-hi);
+  }
+  .file-size { color: var(--text-dim); text-align: right; }
+  .file-state {
+    text-align: right;
+    font-size: 10px;
+    letter-spacing: .05em;
+  }
+  .file-state.pending  { color: var(--text-dim); }
+  .file-state.working  { color: var(--amber); }
+  .file-state.done     { color: var(--green); }
+  .file-state.error    { color: var(--red); }
+  .file-state.done     { cursor: pointer; text-decoration: underline; }
+
+  /* ── Actions ── */
+  .actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-top: 20px;
+  }
+  .btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 10px 24px;
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+    transition: all .15s;
+    outline: none;
+  }
+  .btn-primary {
+    background: var(--amber);
+    color: #000;
+  }
+  .btn-primary:hover:not(:disabled) { background: #f0b030; }
+  .btn-primary:disabled {
+    background: #2a2a1a;
+    color: var(--text-dim);
+    cursor: not-allowed;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--border-hi); color: var(--text); }
+  .btn-ghost:disabled { opacity: .4; cursor: not-allowed; }
+
+  .action-hint {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-left: auto;
+  }
+
+  /* ── Progress bar ── */
+  .progress-wrap {
+    display: none;
+    margin-top: 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    height: 3px;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--amber);
+    width: 0%;
+    transition: width .2s;
+  }
+
+  /* ── Format reference ── */
+  .format-ref {
+    margin-top: 28px;
+    padding: 14px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 2;
+  }
+  .format-ref .label {
+    color: var(--amber-dim);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+    font-size: 9px;
+  }
+  .format-seg { display: inline-flex; margin-right: 2px; }
+  .format-seg .seg-bytes {
+    background: #1c2020;
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 2px;
+    color: var(--amber);
+  }
+  .format-seg .seg-desc {
+    padding: 1px 6px;
+    color: var(--text-dim);
+  }
+  .format-arrow { color: var(--border-hi); margin: 0 2px; }
+
+  /* ── Clear button ── */
+  .clear-row-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 4px;
+    line-height: 1;
+    transition: color .1s;
+  }
+  .clear-row-btn:hover { color: var(--red); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header>
+    <div class="logo-mark">9G<span>◆</span></div>
+    <div class="header-meta">
+      <h1>Publisher Tool</h1>
+      <p>Device-specific encryption · 9GEK hybrid format</p>
+    </div>
+    <div class="version-badge">FORMAT v1 · RSA-2048 / AES-256-GCM</div>
+  </header>
+
+  <!-- Step 1: Device Public Key -->
+  <div class="card">
+    <div class="card-header">
+      <div class="step-num">1</div>
+      <h2>Device Public Key</h2>
+      <span class="hint">From device Settings → Share Public Key</span>
+    </div>
+    <div class="card-body">
+      <textarea
+        class="key-area"
+        id="keyInput"
+        placeholder="-----BEGIN PUBLIC KEY-----&#10;Paste the RSA-2048 public key exported from the target device…&#10;-----END PUBLIC KEY-----"
+        spellcheck="false"
+        autocomplete="off"
+      ></textarea>
+      <div class="key-status" id="keyStatus">
+        <div class="status-dot"></div>
+        <span class="fp">No key loaded</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Source Files -->
+  <div class="card">
+    <div class="card-header">
+      <div class="step-num">2</div>
+      <h2>Source Files</h2>
+      <span class="hint">Any file type — one or more</span>
+    </div>
+    <div class="card-body">
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="fileInput" multiple accept="*/*">
+        <div class="drop-icon">📦</div>
+        <div class="drop-label"><strong>Drop files here</strong> or click to browse</div>
+        <div class="drop-sub">Any file type — output will be .9genc</div>
+      </div>
+      <div class="file-list" id="fileList"></div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="encryptBtn" disabled>
+          ⬡ Encrypt All
+        </button>
+        <button class="btn btn-ghost" id="downloadAllBtn" disabled>
+          ↓ Download All
+        </button>
+        <button class="btn btn-ghost" id="clearBtn">
+          Clear
+        </button>
+        <span class="action-hint" id="actionHint">Load a key and add files to begin</span>
+      </div>
+      <div class="progress-wrap" id="progressWrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Format reference -->
+  <div class="format-ref">
+    <span class="label">9GEK encrypted file format</span>
+    <div>
+      <span class="format-seg"><span class="seg-bytes">4B</span><span class="seg-desc">magic "9GEK"</span></span>
+      <span class="format-arrow">›</span>
+      <span class="format-seg"><span class="seg-bytes">1B</span><span class="seg-desc">version = 1</span></span>
+      <span class="format-arrow">›</span>
+      <span class="format-seg"><span class="seg-bytes">4B</span><span class="seg-desc">enc_key_len (big-endian)</span></span>
+      <span class="format-arrow">›</span>
+      <span class="format-seg"><span class="seg-bytes">256B</span><span class="seg-desc">RSA-OAEP/SHA-1 wrapped AES-256 key</span></span>
+      <span class="format-arrow">›</span>
+      <span class="format-seg"><span class="seg-bytes">12B</span><span class="seg-desc">AES-GCM IV</span></span>
+      <span class="format-arrow">›</span>
+      <span class="format-seg"><span class="seg-bytes">N+16B</span><span class="seg-desc">AES-256-GCM ciphertext + auth tag</span></span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── State ─────────────────────────────────────────────────────────────────
+let importedPublicKey = null;
+const files = [];          // { file, state, blob, outputName }
+
+// ─── DOM refs ──────────────────────────────────────────────────────────────
+const keyInput     = document.getElementById('keyInput');
+const keyStatus    = document.getElementById('keyStatus');
+const dropZone     = document.getElementById('dropZone');
+const fileInput    = document.getElementById('fileInput');
+const fileList     = document.getElementById('fileList');
+const encryptBtn   = document.getElementById('encryptBtn');
+const downloadAllBtn = document.getElementById('downloadAllBtn');
+const clearBtn     = document.getElementById('clearBtn');
+const actionHint   = document.getElementById('actionHint');
+const progressWrap = document.getElementById('progressWrap');
+const progressBar  = document.getElementById('progressBar');
+
+// ─── Utilities ─────────────────────────────────────────────────────────────
+function formatSize(bytes) {
+  if (bytes < 1024)        return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+function pemToBytes(pem) {
+  const b64 = pem
+    .replace(/-----BEGIN PUBLIC KEY-----/, '')
+    .replace(/-----END PUBLIC KEY-----/, '')
+    .replace(/\s+/g, '');
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out.buffer;
+}
+
+async function keyFingerprint(cryptoKey) {
+  const exported = await crypto.subtle.exportKey('spki', cryptoKey);
+  const hash = await crypto.subtle.digest('SHA-256', exported);
+  return Array.from(new Uint8Array(hash))
+    .slice(0, 8)
+    .map(b => b.toString(16).padStart(2, '0').toUpperCase())
+    .join(':');
+}
+
+// ─── Key import ────────────────────────────────────────────────────────────
+async function tryImportKey(pem) {
+  try {
+    const keyData = pemToBytes(pem.trim());
+    const key = await crypto.subtle.importKey(
+      'spki',
+      keyData,
+      // RSA-OAEP / SHA-1 for both the OAEP hash and MGF1 hash.
+      // SHA-1 is chosen for cross-device Android Keystore compatibility:
+      // a significant portion of Android OEM Keystore implementations
+      // (Samsung, MediaTek, Qualcomm on Android 9–12) silently ignore
+      // explicit OAEPParameterSpec values and always apply SHA-1 for MGF1.
+      // Using SHA-256 for MGF1 on the encryption side therefore produced a
+      // mismatch — the Keystore decrypted with SHA-1 MGF1, yielding garbage
+      // AES key bytes that failed the AES-GCM authentication tag with no
+      // useful error, making the eBook unreadable on those devices.
+      // SHA-1/SHA-1 is accepted by every Android Keystore variant and matches
+      // EncryptionUtils.encryptForDevice() (v1.18+).
+      { name: 'RSA-OAEP', hash: 'SHA-1' },
+      true,
+      ['encrypt']
+    );
+    importedPublicKey = key;
+    const fp = await keyFingerprint(key);
+    keyStatus.className = 'key-status valid';
+    keyStatus.querySelector('.fp').textContent = 'Fingerprint: ' + fp;
+  } catch {
+    importedPublicKey = null;
+    keyStatus.className = 'key-status invalid';
+    keyStatus.querySelector('.fp').textContent = 'Invalid key — paste a valid RSA-2048 PEM';
+  }
+  refreshUI();
+}
+
+keyInput.addEventListener('input', () => {
+  const v = keyInput.value.trim();
+  if (!v) {
+    importedPublicKey = null;
+    keyStatus.className = 'key-status';
+    keyStatus.querySelector('.fp').textContent = 'No key loaded';
+    refreshUI();
+    return;
+  }
+  tryImportKey(v);
+});
+
+// ─── File handling ──────────────────────────────────────────────────────────
+function addFiles(newFiles) {
+  for (const f of newFiles) {
+    if (files.find(x => x.file.name === f.name && x.file.size === f.size)) continue;
+    files.push({ file: f, state: 'pending', blob: null, outputName: f.name + '.9genc' });
+  }
+  renderFileList();
+  refreshUI();
+}
+
+fileInput.addEventListener('change', e => { addFiles(e.target.files); e.target.value = ''; });
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  addFiles(e.dataTransfer.files);
+});
+
+// ─── Render file list ───────────────────────────────────────────────────────
+function renderFileList() {
+  fileList.innerHTML = '';
+  files.forEach((entry, idx) => {
+    const row = document.createElement('div');
+    row.className = 'file-row';
+    row.dataset.idx = idx;
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'file-name';
+    nameEl.title = entry.file.name;
+    nameEl.textContent = entry.file.name;
+
+    const sizeEl = document.createElement('div');
+    sizeEl.className = 'file-size';
+    sizeEl.textContent = formatSize(entry.file.size);
+
+    const stateEl = document.createElement('div');
+    stateEl.className = 'file-state ' + entry.state;
+    if (entry.state === 'pending') stateEl.textContent = '○ PENDING';
+    if (entry.state === 'working') stateEl.textContent = '◈ ENCRYPTING';
+    if (entry.state === 'error')   stateEl.textContent = '✕ FAILED';
+    if (entry.state === 'done') {
+      stateEl.textContent = '↓ DOWNLOAD';
+      stateEl.onclick = () => downloadFile(idx);
+    }
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'clear-row-btn';
+    delBtn.textContent = '×';
+    delBtn.title = 'Remove';
+    delBtn.onclick = () => { files.splice(idx, 1); renderFileList(); refreshUI(); };
+
+    // Re-layout as 4 columns when we have a delete button
+    row.style.gridTemplateColumns = '1fr 80px 110px 20px';
+    row.append(nameEl, sizeEl, stateEl, delBtn);
+    fileList.appendChild(row);
+  });
+}
+
+// ─── 9GEK encryption ───────────────────────────────────────────────────────
+async function encryptBytes(plainBytes, publicKey) {
+  // 1. Generate random AES-256-GCM session key
+  const sessionKey = await crypto.subtle.generateKey(
+    { name: 'AES-GCM', length: 256 },
+    true,
+    ['encrypt']
+  );
+
+  // 2. Export raw session key bytes
+  const sessionKeyRaw = await crypto.subtle.exportKey('raw', sessionKey);
+
+  // 3. Wrap session key with RSA-OAEP / SHA-1 (universal Android Keystore compat)
+  const encryptedSessionKey = new Uint8Array(
+    await crypto.subtle.encrypt({ name: 'RSA-OAEP' }, publicKey, sessionKeyRaw)
+  );
+
+  // 4. AES-256-GCM encrypt the file content
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext = new Uint8Array(
+    await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, sessionKey, plainBytes)
+  );
+
+  // 5. Assemble 9GEK file
+  //    [4B "9GEK"][1B version=1][4B enc_key_len BE][enc_key][12B IV][ciphertext]
+  const magic   = new TextEncoder().encode('9GEK');
+  const version = new Uint8Array([1]);
+  const encKeyLen = new Uint8Array(4);
+  new DataView(encKeyLen.buffer).setUint32(0, encryptedSessionKey.byteLength, false);
+
+  const total = 4 + 1 + 4 + encryptedSessionKey.byteLength + 12 + ciphertext.byteLength;
+  const out = new Uint8Array(total);
+  let off = 0;
+  out.set(magic,              off); off += 4;
+  out.set(version,            off); off += 1;
+  out.set(encKeyLen,          off); off += 4;
+  out.set(encryptedSessionKey,off); off += encryptedSessionKey.byteLength;
+  out.set(iv,                 off); off += 12;
+  out.set(ciphertext,         off);
+
+  return out;
+}
+
+// ─── Encrypt all ───────────────────────────────────────────────────────────
+encryptBtn.addEventListener('click', async () => {
+  if (!importedPublicKey) return;
+  const pending = files.filter(f => f.state === 'pending');
+  if (!pending.length) return;
+
+  encryptBtn.disabled = true;
+  downloadAllBtn.disabled = true;
+  progressWrap.style.display = 'block';
+
+  let done = 0;
+  for (const entry of pending) {
+    entry.state = 'working';
+    renderFileList();
+    try {
+      const bytes = await entry.file.arrayBuffer();
+      const encrypted = await encryptBytes(new Uint8Array(bytes), importedPublicKey);
+      entry.blob = new Blob([encrypted], { type: 'application/octet-stream' });
+      entry.state = 'done';
+    } catch (err) {
+      entry.state = 'error';
+      console.error(entry.file.name, err);
+    }
+    done++;
+    progressBar.style.width = (done / pending.length * 100) + '%';
+    renderFileList();
+  }
+
+  setTimeout(() => {
+    progressWrap.style.display = 'none';
+    progressBar.style.width = '0%';
+  }, 800);
+
+  refreshUI();
+});
+
+// ─── Download ───────────────────────────────────────────────────────────────
+function downloadFile(idx) {
+  const entry = files[idx];
+  if (!entry?.blob) return;
+  const url = URL.createObjectURL(entry.blob);
+  const a = Object.assign(document.createElement('a'), { href: url, download: entry.outputName });
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+downloadAllBtn.addEventListener('click', () => {
+  files.filter(f => f.state === 'done').forEach((_, idx) => {
+    const realIdx = files.indexOf(_);
+    setTimeout(() => downloadFile(realIdx), realIdx * 120);
+  });
+});
+
+clearBtn.addEventListener('click', () => {
+  files.length = 0;
+  renderFileList();
+  refreshUI();
+});
+
+// ─── Refresh UI state ───────────────────────────────────────────────────────
+function refreshUI() {
+  const hasPending = files.some(f => f.state === 'pending');
+  const hasDone    = files.some(f => f.state === 'done');
+  const keyOk      = !!importedPublicKey;
+
+  encryptBtn.disabled    = !keyOk || !hasPending;
+  downloadAllBtn.disabled = !hasDone;
+
+  if (!keyOk && !files.length) actionHint.textContent = 'Load a key and add files to begin';
+  else if (!keyOk)             actionHint.textContent = 'Paste a valid device public key first';
+  else if (!hasPending)        actionHint.textContent = hasDone ? 'All files encrypted ✓' : 'Add files to encrypt';
+  else                         actionHint.textContent = `${files.filter(f=>f.state==='pending').length} file(s) ready to encrypt`;
+}
+</script>
+</body>
+</html>

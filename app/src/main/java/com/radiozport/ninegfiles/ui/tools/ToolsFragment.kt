@@ -9,6 +9,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import com.radiozport.ninegfiles.NineGFilesApp
 import com.radiozport.ninegfiles.R
 import com.radiozport.ninegfiles.databinding.FragmentToolsBinding
 import com.radiozport.ninegfiles.ui.explorer.FileExplorerViewModel
@@ -65,6 +66,12 @@ class ToolsFragment : Fragment() {
         binding.cardAppManager?.setOnClickListener {
             findNavController().navigate(R.id.action_tools_to_app_manager)
         }
+        binding.cardPublisherTool?.setOnClickListener {
+            findNavController().navigate(R.id.action_tools_to_publisher)
+        }
+        binding.cardEbookBuilder?.setOnClickListener {
+            findNavController().navigate(R.id.action_tools_to_epub_builder)
+        }
 
         // Show live trash summary (count + total size) in the recycle bin card
         viewLifecycleOwner.lifecycleScope.launch {
@@ -85,8 +92,32 @@ class ToolsFragment : Fragment() {
                             }
                         }
                 }
+
+                // ── Security & Privacy section visibility ─────────────────────
+                // Hidden by default; shown only when the device has been unlocked
+                // with the device-specific unlock code.
+                launch {
+                    val prefs = (requireActivity().application as NineGFilesApp).preferences
+                    prefs.securitySectionUnlocked.collectLatest { unlocked ->
+                        setSecuritySectionVisible(unlocked)
+                    }
+                }
             }
         }
+    }
+
+    /**
+     * Shows or hides every view belonging to the "Security & Privacy" section:
+     * the divider, the section header, and all three feature cards.
+     */
+    private fun setSecuritySectionVisible(visible: Boolean) {
+        // Divider and header (given IDs in the layout)
+        binding.root.findViewById<View>(R.id.dividerSecurityPrivacy)?.isVisible = visible
+        binding.root.findViewById<View>(R.id.tvSecurityPrivacyHeader)?.isVisible = visible
+        // Feature cards
+        binding.cardSecureVault?.isVisible   = visible
+        binding.cardEbookBuilder?.isVisible  = visible
+        binding.cardPublisherTool?.isVisible = visible
     }
 
     override fun onDestroyView() { super.onDestroyView(); _binding = null }

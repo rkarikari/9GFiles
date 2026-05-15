@@ -37,6 +37,7 @@
     <color name="category_document">#4CAF50</color>
     <color name="category_archive">#FF9800</color>
     <color name="category_apk">#009688</color>
+    <color name="category_ebook">#FF6F00</color>
 
     <!-- Bottom nav selector -->
     <color name="bottom_nav_selected">@color/md_theme_primary</color>

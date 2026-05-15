@@ -16,8 +16,14 @@ import com.radiozport.ninegfiles.databinding.FragmentSettingsBinding
 import com.radiozport.ninegfiles.ui.explorer.FileExplorerViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import com.radiozport.ninegfiles.utils.DeviceKeyManager
+import com.radiozport.ninegfiles.utils.UnlockManager
+import androidx.core.widget.addTextChangedListener
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.withContext
 
 class SettingsFragment : Fragment() {
 
@@ -48,6 +54,51 @@ class SettingsFragment : Fragment() {
         loadCurrentSettings()
         setupListeners()
         setupSecuritySettings()
+        setupDeviceKeySection()
+        setupUnlockEntry()
+    }
+
+    /**
+     * Populates the eBook encryption card in Settings.
+     *
+     * Displays the **public key fingerprint** (a short, safe-to-share identifier)
+     * and provides a "Share Public Key" button that opens the Android share sheet
+     * with the full PEM public key.  The recipient uses this PEM to encrypt eBooks
+     * that can only be decrypted on this device.
+     *
+     * The private key is never exposed here — it lives exclusively in the
+     * Android Keystore and is not accessible to this code.
+     */
+    private fun setupDeviceKeySection() {
+        val tvFingerprint  = binding.root.findViewById<android.widget.TextView>(R.id.tvDeviceKey)
+            ?: return
+        val btnShare       = binding.root.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCopyDeviceKey)
+            ?: return
+        val tvKeystoreAlias = binding.root.findViewById<android.widget.TextView>(R.id.tvKeystoreAlias)
+
+        tvKeystoreAlias?.text = "Keystore alias: ${DeviceKeyManager.KEYSTORE_ALIAS}"
+        tvFingerprint.text = "Generating…"
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Key pair generation / Keystore I/O must run off the main thread.
+            val fingerprint = withContext(Dispatchers.IO) {
+                DeviceKeyManager.getPublicKeyFingerprint()
+            }
+            tvFingerprint.text = fingerprint
+
+            btnShare.setOnClickListener {
+                // Fetch the PEM on IO then open the share sheet on main.
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val pem = withContext(Dispatchers.IO) { DeviceKeyManager.getPublicKeyPem() }
+                    val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(android.content.Intent.EXTRA_SUBJECT, "9GFiles Device Public Key")
+                        putExtra(android.content.Intent.EXTRA_TEXT, pem)
+                    }
+                    startActivity(android.content.Intent.createChooser(intent, "Share Device Public Key"))
+                }
+            }
+        }
     }
 
     private fun loadCurrentSettings() {
@@ -174,6 +225,29 @@ class SettingsFragment : Fragment() {
                 .getPackageInfo(requireContext().packageName, 0).versionName
         }"
         binding.tvCopyright.text = getString(R.string.app_copyright)
+
+        // ── 9-tap Easter egg → hidden "Tools" (unlock code generator) ─────────
+        // Tapping the version/copyright info block 9 times in quick succession
+        // navigates to the secret UnlockToolsFragment.  No visual hint is given.
+        var tapCount = 0
+        var lastTapTime = 0L
+        val tapResetMs = 2000L   // reset counter after 2 s of inactivity
+
+        val easterEggListener = android.view.View.OnClickListener {
+            val now = System.currentTimeMillis()
+            if (now - lastTapTime > tapResetMs) tapCount = 0
+            lastTapTime = now
+            tapCount++
+            if (tapCount >= 9) {
+                tapCount = 0
+                try {
+                    findNavController()
+                        .navigate(R.id.action_settings_to_unlock_tools)
+                } catch (_: Exception) { /* nav state race — ignore */ }
+            }
+        }
+        binding.tvVersion.setOnClickListener(easterEggListener)
+        binding.tvCopyright.setOnClickListener(easterEggListener)
 
         // ── New settings ─────────────────────────────────────────────────────
         binding.switchRememberLastPath.setOnCheckedChangeListener { _, c ->
@@ -346,6 +420,55 @@ class SettingsFragment : Fragment() {
                     .trim() + " — " + options[which].substringAfter("  (").trimEnd(')')
             }
             .show()
+    }
+
+    private fun setupUnlockEntry() {
+        val tilCode    = binding.root.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.tilSettingsUnlockCode) ?: return
+        val etCode     = binding.root.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etSettingsUnlockCode) ?: return
+        val btnApply   = binding.root.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSettingsApplyUnlock) ?: return
+        val tvStatus   = binding.root.findViewById<android.widget.TextView>(R.id.tvSettingsUnlockStatus)
+
+        // Reflect current unlock state immediately
+        viewLifecycleOwner.lifecycleScope.launch {
+            prefs.securitySectionUnlocked.collect { unlocked ->
+                tvStatus?.text = if (unlocked) "✓ Section unlocked" else ""
+                btnApply.isEnabled = !unlocked
+                if (unlocked) {
+                    etCode.setText("")
+                    tilCode.error = null
+                }
+            }
+        }
+
+        // Auto-format as XXXX-XXXX-XXXX-XXXX while typing
+        var isFormatting = false
+        etCode.addTextChangedListener { editable ->
+            if (isFormatting) return@addTextChangedListener
+            isFormatting = true
+            val raw = editable.toString().replace("-", "").uppercase().take(16)
+            val formatted = raw.chunked(4).joinToString("-")
+            etCode.setText(formatted)
+            etCode.setSelection(formatted.length)
+            isFormatting = false
+        }
+
+        btnApply.setOnClickListener {
+            val entered = etCode.text?.toString()?.trim() ?: ""
+            if (entered.replace("-", "").length < 16) {
+                tilCode.error = "Enter the full 16-character code"
+                return@setOnClickListener
+            }
+            tilCode.error = null
+            viewLifecycleOwner.lifecycleScope.launch {
+                val valid = withContext(kotlinx.coroutines.Dispatchers.IO) { UnlockManager.validateCode(entered) }
+                if (valid) {
+                    prefs.setSecuritySectionUnlocked(true)
+                    Snackbar.make(binding.root, "✓ Security & Privacy section unlocked!", Snackbar.LENGTH_LONG).show()
+                } else {
+                    tilCode.error = "Invalid code — this code is not for this device"
+                }
+            }
+        }
     }
 
     override fun onDestroyView() { super.onDestroyView(); _binding = null }

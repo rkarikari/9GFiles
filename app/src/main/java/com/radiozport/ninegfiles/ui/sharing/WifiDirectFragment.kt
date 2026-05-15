@@ -224,7 +224,8 @@ class WifiDirectFragment : Fragment() {
 
         // Collect any files pre-selected in the explorer so they are sent automatically
         // once the peer connection and TCP socket are established.
-        pendingFilePaths = arguments?.getStringArrayList("pendingFilePaths")
+        pendingFilePaths = arguments?.getStringArray("pendingFilePaths")
+            ?.let { ArrayList(it.toList()) }
         if (!pendingFilePaths.isNullOrEmpty()) {
             binding.tvStatus.text =
                 "${pendingFilePaths!!.size} file(s) queued — discover a peer and connect to send automatically"

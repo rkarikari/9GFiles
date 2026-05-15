@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24"
+    android:tint="?attr/colorOnSurface">
+    <!--  Open book: two pages with a centre spine  -->
+    <path android:fillColor="@android:color/white"
+        android:pathData="M21,4H7C5.9,4 5,4.9 5,6v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2V6C23,4.9 22.1,4 21,4zM21,20H7V6h14V20z
+                          M3,6H1v14c0,1.1 0.9,2 2,2h14v-2H3V6z
+                          M9,8v8l3,-2 3,2V8H9z"/>
+</vector>

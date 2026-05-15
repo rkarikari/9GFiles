@@ -56,6 +56,10 @@ class AppPreferences(private val context: Context) {
         val KEY_REMEMBER_LAST_PATH     = booleanPreferencesKey("remember_last_path")    // default true
         val KEY_SHOW_THUMBNAILS        = booleanPreferencesKey("show_thumbnails")        // default true
         val KEY_SHOW_FILE_TYPE_ICONS   = booleanPreferencesKey("show_file_type_icons")   // default true
+
+        // ── Security section unlock ───────────────────────────────────────────
+        /** Persists the unlock state for the Security & Privacy tools section. */
+        val KEY_SECURITY_SECTION_UNLOCKED = booleanPreferencesKey("security_section_unlocked")
     }
 
     val sortOption: Flow<SortOption> = context.dataStore.data.map { prefs ->
@@ -282,4 +286,12 @@ class AppPreferences(private val context: Context) {
     suspend fun setRememberLastPath(remember: Boolean) { context.dataStore.edit { it[KEY_REMEMBER_LAST_PATH] = remember } }
     suspend fun setShowThumbnails(show: Boolean) { context.dataStore.edit { it[KEY_SHOW_THUMBNAILS] = show } }
     suspend fun setShowFileTypeIcons(show: Boolean) { context.dataStore.edit { it[KEY_SHOW_FILE_TYPE_ICONS] = show } }
+
+    // ── Security section unlock ───────────────────────────────────────────────
+    val securitySectionUnlocked: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[KEY_SECURITY_SECTION_UNLOCKED] ?: false
+    }
+    suspend fun setSecuritySectionUnlocked(unlocked: Boolean) {
+        context.dataStore.edit { it[KEY_SECURITY_SECTION_UNLOCKED] = unlocked }
+    }
 }

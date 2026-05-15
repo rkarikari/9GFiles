@@ -117,7 +117,17 @@
 
     <fragment android:id="@+id/settingsFragment"
         android:name="com.radiozport.ninegfiles.ui.settings.SettingsFragment"
-        android:label="Settings" tools:layout="@layout/fragment_settings"/>
+        android:label="Settings" tools:layout="@layout/fragment_settings">
+        <action android:id="@+id/action_settings_to_unlock_tools"
+            app:destination="@id/unlockToolsFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+    </fragment>
+
+    <!-- Hidden secret screen: accessible only via 9-tap Easter egg in Settings -->
+    <fragment android:id="@+id/unlockToolsFragment"
+        android:name="com.radiozport.ninegfiles.ui.tools.UnlockToolsFragment"
+        android:label="Tools" tools:layout="@layout/fragment_unlock_tools"/>
 
     <fragment android:id="@+id/storageAnalysisFragment"
         android:name="com.radiozport.ninegfiles.ui.storage.StorageAnalysisFragment"
@@ -198,6 +208,12 @@
         <action android:id="@+id/action_tools_to_app_manager" app:destination="@id/appManagerFragment"
             app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_tools_to_publisher" app:destination="@id/publisherToolFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_tools_to_epub_builder" app:destination="@id/epubBuilderFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
     </fragment>
 
     <fragment android:id="@+id/duplicateFinderFragment"
@@ -264,6 +280,29 @@
 
     <fragment android:id="@+id/wifiDirectFragment"
         android:name="com.radiozport.ninegfiles.ui.sharing.WifiDirectFragment"
-        android:label="Wi-Fi Direct Share" tools:layout="@layout/fragment_wifi_direct"/>
+        android:label="Wi-Fi Direct Share" tools:layout="@layout/fragment_wifi_direct">
+        <argument android:name="pendingFilePaths"
+            app:argType="string[]"
+            app:nullable="true"
+            android:defaultValue="@null"/>
+    </fragment>
+
+    <fragment android:id="@+id/publisherToolFragment"
+        android:name="com.radiozport.ninegfiles.ui.publisher.PublisherToolFragment"
+        android:label="Publisher Tool" tools:layout="@layout/fragment_publisher_tool">
+        <action android:id="@+id/action_publisher_to_wifi_direct"
+            app:destination="@id/wifiDirectFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+    </fragment>
+
+    <fragment android:id="@+id/epubBuilderFragment"
+        android:name="com.radiozport.ninegfiles.ui.epub.EpubBuilderFragment"
+        android:label="ePub eBook Builder" tools:layout="@layout/fragment_epub_builder">
+        <action android:id="@+id/action_epub_builder_to_epub_reader"
+            app:destination="@id/epubReaderFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+    </fragment>
 
 </navigation>

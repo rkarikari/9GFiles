@@ -28,8 +28,12 @@ import com.radiozport.ninegfiles.data.model.ViewMode
 import com.radiozport.ninegfiles.databinding.ItemFileGridBinding
 import com.radiozport.ninegfiles.databinding.ItemFileListBinding
 import com.radiozport.ninegfiles.databinding.ItemFileCompactBinding
+import com.radiozport.ninegfiles.utils.DeviceKeyManager
+import com.radiozport.ninegfiles.utils.EncryptionUtils
+import java.io.ByteArrayInputStream
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.zip.ZipInputStream
 
 class FileAdapter(
     private val onItemClick: (FileItem) -> Unit,
@@ -407,6 +411,40 @@ class FileAdapter(
                     }
                     // fall through to static icon if extraction fails
                 }
+                FileType.EBOOK -> {
+                    // Extract the ePub cover on a background thread, write it to a
+                    // persistent cache file keyed by path+lastModified, then load the
+                    // file into Glide — the same pipeline Glide uses for IMAGE/VIDEO.
+                    // Loading a raw Bitmap via Glide.load(bitmap) is unreliable because
+                    // Glide keys on object identity, defeating disk-caching and causing
+                    // re-extraction on every scroll.
+                    val expectedPath = item.path
+                    imageView.tag = expectedPath
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val coverFile = getOrCreateEpubCoverCache(context, item)
+                        withContext(Dispatchers.Main) {
+                            if (imageView.tag != expectedPath) return@withContext
+                            if (coverFile != null) {
+                                imageView.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+                                imageView.setPadding(0, 0, 0, 0)
+                                imageView.imageTintList = null
+                                Glide.with(context)
+                                    .load(coverFile)
+                                    .apply(
+                                        RequestOptions()
+                                            .placeholder(R.drawable.ic_file_epub)
+                                            .error(R.drawable.ic_file_epub)
+                                            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                            .signature(com.bumptech.glide.signature.ObjectKey(item.file.lastModified()))
+                                            .override(300, 300)
+                                            .centerCrop()
+                                    )
+                                    .into(imageView)
+                            }
+                        }
+                    }
+                    // Static icon shown immediately while IO runs; fall through below.
+                }
                 else -> { /* fall through */ }
             }
         }
@@ -454,6 +492,546 @@ class FileAdapter(
     }
 
     /**
+     * Returns a File containing the ePub's cover image, creating it from the ePub
+     * the first time and re-using the cached copy on subsequent calls.
+     *
+     * Cache key = hashCode(path) + "_" + lastModified, so the file is automatically
+     * invalidated if the ePub is replaced.  Cache lives in the app's cacheDir and
+     * is cleared by the system when storage runs low.
+     *
+     * Returns null when no cover is found or extraction fails.
+     */
+    private suspend fun getOrCreateEpubCoverCache(context: Context, item: FileItem): java.io.File? {
+        val cacheKey = "${item.path.hashCode()}_${item.file.lastModified()}"
+        // Prefix "v3" — v2 files could contain raw SVG bytes written as .jpg (Career
+        // Technology pattern) and must never be reused; bumping the prefix forces a clean
+        // re-extraction for every ePub on first launch after this update.
+        val cacheFile = java.io.File(context.cacheDir, "epub_cvr3_$cacheKey.jpg")
+        if (cacheFile.exists() && cacheFile.length() > 0L) return cacheFile
+
+        // ── Encrypted ePub (.9genc) path ─────────────────────────────────────
+        // .9genc files are AES-256-GCM encrypted and cannot be opened as a plain
+        // ZipFile. For device-key (9GEK) files the session key is stored in the
+        // Android Keystore and can be unwrapped without a user-supplied password,
+        // so we decrypt in-memory and extract the cover from the resulting bytes.
+        // Password-based (9GEF) files have no automatic decryption path; we return
+        // null so the caller falls back to the static ePub icon.
+        if (item.file.extension.equals(EncryptionUtils.ENCRYPTED_EXT.trimStart('.'), ignoreCase = true)) {
+            val epubBytes: ByteArray = when (EncryptionUtils.detectFormat(item.file)) {
+                EncryptionUtils.EncryptionFormat.DEVICE_KEY -> {
+                    EncryptionUtils.decryptDeviceToBytes(
+                        source              = item.file,
+                        sessionKeyDecryptor = { DeviceKeyManager.decryptSessionKey(it) }
+                    ) ?: return null
+                }
+                // Password-based format: cannot decrypt without user input at thumbnail time
+                EncryptionUtils.EncryptionFormat.PASSWORD_BASED -> return null
+                null -> return null
+            }
+            val entries = loadZipEntriesFromBytes(epubBytes)
+            if (entries.isEmpty()) return null
+
+            // Path 1 (encrypted): extract cover image bytes from the in-memory ZIP entries
+            val coverBytes = extractEpubCoverBytesFromEntries(entries)
+            if (coverBytes != null) {
+                val opts = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                android.graphics.BitmapFactory.decodeByteArray(coverBytes, 0, coverBytes.size, opts)
+                if (opts.outWidth > 0) {
+                    return try { cacheFile.writeBytes(coverBytes); cacheFile } catch (_: Exception) { null }
+                }
+                val svgBitmap = renderBytesAsSvg(coverBytes)
+                if (svgBitmap != null) {
+                    return try {
+                        cacheFile.outputStream().use { out ->
+                            svgBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 92, out)
+                        }
+                        svgBitmap.recycle()
+                        cacheFile
+                    } catch (_: Exception) { null }
+                }
+            }
+
+            // Path 2 (encrypted): XHTML cover page fallback
+            val bitmap = renderEpubXhtmlSvgCoverFromEntries(entries) ?: return null
+            return try {
+                cacheFile.outputStream().use { out ->
+                    bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 92, out)
+                }
+                bitmap.recycle()
+                cacheFile
+            } catch (_: Exception) { null }
+        }
+
+        // ── Plain ePub path ───────────────────────────────────────────────────
+        // Path 1: ePub contains a cover image.
+        // Strategy: extract raw bytes, then verify they are a decodable raster image.
+        // If BitmapFactory cannot decode them (e.g. the cover is a standalone SVG file),
+        // attempt to render via AndroidSVG before falling through to the XHTML cover path.
+        // This handles all image types uniformly without needing per-format special-casing.
+        val bytes = extractEpubCoverBytes(item.path)
+        if (bytes != null) {
+            val opts = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
+            if (opts.outWidth > 0) {
+                // Valid raster image — write directly so Glide can decode it
+                return try { cacheFile.writeBytes(bytes); cacheFile } catch (_: Exception) { null }
+            }
+            // Not a raster (e.g. standalone SVG) — try rendering with AndroidSVG
+            val svgBitmap = renderBytesAsSvg(bytes)
+            if (svgBitmap != null) {
+                return try {
+                    cacheFile.outputStream().use { out ->
+                        svgBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 92, out)
+                    }
+                    svgBitmap.recycle()
+                    cacheFile
+                } catch (_: Exception) { null }
+            }
+            // SVG render also failed — fall through to the XHTML cover page path below
+        }
+
+        // Path 2: ePub uses an XHTML cover page (inline SVG or <img> reference).
+        // Render to a Bitmap and save as JPEG so Glide can load it normally.
+        val bitmap = renderEpubXhtmlSvgCover(item.path) ?: return null
+        return try {
+            cacheFile.outputStream().use { out ->
+                bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 92, out)
+            }
+            bitmap.recycle()
+            cacheFile
+        } catch (_: Exception) { null }
+    }
+
+    /**
+     * Reads all non-directory entries from a ZIP held entirely in [bytes] into a
+     * [Map] keyed by entry name.  Mirrors the logic in EpubReaderFragment so that
+     * both the reader and the thumbnail extractor share the same in-memory strategy.
+     */
+    private fun loadZipEntriesFromBytes(bytes: ByteArray): Map<String, ByteArray> {
+        val map = mutableMapOf<String, ByteArray>()
+        try {
+            ZipInputStream(ByteArrayInputStream(bytes)).use { zis ->
+                var entry = zis.nextEntry
+                while (entry != null) {
+                    if (!entry.isDirectory) map[entry.name] = zis.readBytes()
+                    zis.closeEntry()
+                    entry = zis.nextEntry
+                }
+            }
+        } catch (_: Exception) { /* return whatever was read so far */ }
+        return map
+    }
+
+    /**
+     * Extracts the raw cover image bytes from an in-memory ePub entry map.
+     *
+     * Mirrors [extractEpubCoverBytes] but reads from [entries] (pre-decrypted
+     * ZIP contents) rather than from a [java.util.zip.ZipFile] — used for
+     * `.9genc` encrypted ePubs whose bytes are decrypted in-memory first.
+     *
+     * The same four strategies (A–D) are applied in the same priority order.
+     */
+    private fun extractEpubCoverBytesFromEntries(entries: Map<String, ByteArray>): ByteArray? {
+        return try {
+            // ── Step 1: OPF path ─────────────────────────────────────────────────
+            val containerXml = entries["META-INF/container.xml"]
+                ?.toString(Charsets.UTF_8) ?: return null
+            val opfPath = Regex("""full-path=["']([^"']+)["']""")
+                .find(containerXml)?.groupValues?.get(1) ?: return null
+            val opfDir = opfPath.substringBeforeLast("/", "")
+
+            // ── Step 2: cover href from OPF ──────────────────────────────────────
+            val opfXml = entries[opfPath]?.toString(Charsets.UTF_8) ?: return null
+
+            fun attr(tag: String, name: String): String? =
+                Regex("""\b${Regex.escape(name)}=["']([^"']+)["']""").find(tag)?.groupValues?.get(1)
+
+            val manifestXml = Regex(
+                """<manifest\b[^>]*>(.*?)</manifest>""", RegexOption.DOT_MATCHES_ALL
+            ).find(opfXml)?.groupValues?.get(1) ?: opfXml
+
+            val items = Regex("""<item\b[^>]+/?>""", RegexOption.DOT_MATCHES_ALL)
+                .findAll(manifestXml).toList()
+
+            // Strategy A: epub3 — properties="cover-image"
+            var coverHref = items.firstOrNull { item ->
+                attr(item.value, "properties")?.contains("cover-image") == true
+            }?.let { attr(it.value, "href") }
+
+            // Strategy B: epub2 — <meta name="cover" content="id"/>
+            if (coverHref == null) {
+                val metaId =
+                    Regex("""<meta\b[^>]*\bname="cover"[^>]*\bcontent="([^"]+)"""")
+                        .find(opfXml)?.groupValues?.get(1)
+                    ?: Regex("""<meta\b[^>]*\bcontent="([^"]+)"[^>]*\bname="cover"""")
+                        .find(opfXml)?.groupValues?.get(1)
+                if (metaId != null) {
+                    val targetItem = items.firstOrNull { attr(it.value, "id") == metaId }
+                    val mime = targetItem?.let { attr(it.value, "media-type") } ?: ""
+                    if (mime.startsWith("image/"))
+                        coverHref = targetItem?.let { attr(it.value, "href") }
+                }
+            }
+
+            // Strategy C: any image item whose filename starts with "cover" or "front"
+            if (coverHref == null)
+                coverHref = items.firstOrNull { item ->
+                    val mime = attr(item.value, "media-type") ?: return@firstOrNull false
+                    if (!mime.startsWith("image/")) return@firstOrNull false
+                    val fn = (attr(item.value, "href") ?: "").substringAfterLast("/").lowercase()
+                    fn.startsWith("cover") || fn.startsWith("front")
+                }?.let { attr(it.value, "href") }
+
+            // Strategy D: heuristic — scan all entries for an image with "cover" in the path
+            if (coverHref == null) {
+                val imgExts = setOf("jpg", "jpeg", "png", "webp")
+                val entryKey = entries.keys.firstOrNull { name ->
+                    !name.endsWith('/') && name.lowercase().let { n ->
+                        n.contains("cover") && n.substringAfterLast('.') in imgExts
+                    }
+                }
+                if (entryKey != null) return entries[entryKey]
+            }
+
+            if (coverHref == null) return null
+
+            // ── Step 3: read image bytes ──────────────────────────────────────────
+            val fullHref = resolveEpubHref(opfDir, coverHref)
+            entries[fullHref] ?: entries[coverHref]
+        } catch (_: Exception) { null }
+    }
+
+    /**
+     * Handles encrypted ePubs whose OPF meta-cover points to an XHTML page rather
+     * than a raster image — mirrors [renderEpubXhtmlSvgCover] but reads from an
+     * in-memory [entries] map instead of a [java.util.zip.ZipFile].
+     */
+    private fun renderEpubXhtmlSvgCoverFromEntries(entries: Map<String, ByteArray>): android.graphics.Bitmap? {
+        return try {
+            // ── Locate OPF ───────────────────────────────────────────────────────
+            val containerXml = entries["META-INF/container.xml"]
+                ?.toString(Charsets.UTF_8) ?: return null
+            val opfPath = Regex("""full-path=["']([^"']+)["']""")
+                .find(containerXml)?.groupValues?.get(1) ?: return null
+            val opfDir  = opfPath.substringBeforeLast("/", "")
+            val opfXml  = entries[opfPath]?.toString(Charsets.UTF_8) ?: return null
+
+            fun attr(tag: String, name: String): String? =
+                Regex("""\b${Regex.escape(name)}=["']([^"']+)["']""").find(tag)?.groupValues?.get(1)
+
+            val items = Regex("""<item\b[^>]+/?>""", RegexOption.DOT_MATCHES_ALL)
+                .findAll(opfXml).toList()
+
+            // ── Find the XHTML cover item ─────────────────────────────────────────
+            val metaId = Regex("""<meta\b[^>]*\bname=["']cover["'][^>]*\bcontent=["']([^"']+)["']""")
+                .find(opfXml)?.groupValues?.get(1)
+                ?: Regex("""<meta\b[^>]*\bcontent=["']([^"']+)["'][^>]*\bname=["']cover["']""")
+                    .find(opfXml)?.groupValues?.get(1)
+
+            val xhtmlHref: String = run {
+                var href: String? = null
+                if (metaId != null) {
+                    val target = items.firstOrNull { attr(it.value, "id") == metaId }
+                    val mime   = target?.let { attr(it.value, "media-type") } ?: ""
+                    if (mime.contains("xhtml") || mime.contains("html"))
+                        href = target?.let { attr(it.value, "href") }
+                }
+                if (href == null) {
+                    href = items.firstOrNull { item ->
+                        val mime = attr(item.value, "media-type") ?: ""
+                        val h    = attr(item.value, "href") ?: ""
+                        (mime.contains("xhtml") || mime.contains("html")) &&
+                            h.substringAfterLast("/").lowercase().startsWith("cover")
+                    }?.let { attr(it.value, "href") }
+                }
+                href
+            } ?: return null
+
+            val fullXhtmlHref = resolveEpubHref(opfDir, xhtmlHref)
+            val xhtmlContent  = (entries[fullXhtmlHref] ?: entries[xhtmlHref])
+                ?.toString(Charsets.UTF_8) ?: return null
+
+            // ── Sub-case A: inline SVG ────────────────────────────────────────────
+            val svgBlock = Regex("""<svg\b.*?</svg>""",
+                setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE)
+            ).find(xhtmlContent)?.value
+
+            if (svgBlock != null) {
+                return try {
+                    val svg    = com.caverock.androidsvg.SVG.getFromString(svgBlock)
+                    val vb     = svg.documentViewBox
+                    val aspect = if (vb != null && vb.height() > 0) vb.width() / vb.height() else 2f / 3f
+                    val bmpH   = 900
+                    val bmpW   = (bmpH * aspect).toInt().coerceAtLeast(1)
+                    val bitmap = android.graphics.Bitmap.createBitmap(
+                        bmpW, bmpH, android.graphics.Bitmap.Config.ARGB_8888
+                    )
+                    val canvas = android.graphics.Canvas(bitmap)
+                    svg.renderToCanvas(canvas)
+                    bitmap
+                } catch (_: Exception) { null }
+            }
+
+            // ── Sub-case B: <img src="…"> reference ──────────────────────────────
+            val imgSrc  = Regex("""<img\b[^>]*\bsrc="([^"]+)"""", RegexOption.IGNORE_CASE)
+                .find(xhtmlContent)?.groupValues?.get(1) ?: return null
+            val imgHref = resolveEpubHref(opfDir, imgSrc)
+            val imgBytes = entries[imgHref] ?: entries[imgSrc] ?: return null
+            android.graphics.BitmapFactory.decodeByteArray(imgBytes, 0, imgBytes.size)
+                ?: renderBytesAsSvg(imgBytes)
+        } catch (_: Exception) { null }
+    }
+
+    /**
+     * Extracts the raw cover image bytes from an ePub ZIP.
+     *
+     * Root cause of the previous "null bitmap" bug: BitmapFactory.decodeStream()
+     * calls available() on the underlying InflaterInputStream (ZipFile entry), which
+     * returns 0.  BitmapFactory then sets its internal mark limit to 0, the read
+     * overflows the mark, and decodeStream() silently returns null.
+     * Fix: read all bytes first with readBytes(), then use decodeByteArray() in the
+     * caller — this function now returns the raw bytes so the caller can do that.
+     *
+     * Four strategies are tried in priority order:
+     *   A. epub3  — <item properties="cover-image" href="..."/>
+     *   B. epub2  — <meta name="cover" content="id"/> + item by id
+     *   C. name   — any image item whose filename starts with "cover" or "front"
+     *   D. scan   — first ZIP entry whose path contains "cover" and is an image
+     */
+    private fun extractEpubCoverBytes(path: String): ByteArray? = try {
+        java.util.zip.ZipFile(path).use { zip ->
+
+            // ── Step 1: OPF path ─────────────────────────────────────────
+            val containerXml = zip.getEntry("META-INF/container.xml")
+                ?.let { zip.getInputStream(it).use { s -> s.readBytes().toString(Charsets.UTF_8) } }
+                ?: return null
+            // Accept both double-quoted (full-path="…") and single-quoted (full-path='…')
+            // attributes — both are valid XML and both appear in real-world EPUBs.
+            val opfPath = Regex("""full-path=["']([^"']+)["']""")
+                .find(containerXml)?.groupValues?.get(1) ?: return null
+            val opfDir = opfPath.substringBeforeLast("/", "")
+
+            // ── Step 2: cover href from OPF ──────────────────────────────
+            val opfXml = zip.getEntry(opfPath)
+                ?.let { zip.getInputStream(it).use { s -> s.readBytes().toString(Charsets.UTF_8) } }
+                ?: return null
+
+            /** Extract one named attribute value from an already-isolated tag string.
+             *  Accepts both single-quoted and double-quoted attribute values. */
+            fun attr(tag: String, name: String): String? =
+                Regex("""\b${Regex.escape(name)}=["']([^"']+)["']""").find(tag)?.groupValues?.get(1)
+
+            val manifestXml = Regex(
+                """<manifest\b[^>]*>(.*?)</manifest>""", RegexOption.DOT_MATCHES_ALL
+            ).find(opfXml)?.groupValues?.get(1) ?: opfXml
+
+            val items = Regex("""<item\b[^>]+/?>""", RegexOption.DOT_MATCHES_ALL)
+                .findAll(manifestXml).toList()
+
+            // Strategy A: epub3 — properties="cover-image" (any attribute order)
+            var coverHref = items.firstOrNull { item ->
+                attr(item.value, "properties")?.contains("cover-image") == true
+            }?.let { attr(it.value, "href") }
+
+            // Strategy B: epub2 — <meta name="cover" content="id"/> (both attribute orders)
+            // IMPORTANT: only accept the item if its media-type is image/*. Many EPUBs
+            // (including those produced by ebooklib) incorrectly point the meta-cover at
+            // an application/xhtml+xml cover-page rather than the image itself. Returning
+            // XHTML bytes here causes Glide to silently fail — Strategy E handles those.
+            if (coverHref == null) {
+                val metaId =
+                    Regex("""<meta\b[^>]*\bname="cover"[^>]*\bcontent="([^"]+)"""")
+                        .find(opfXml)?.groupValues?.get(1)
+                    ?: Regex("""<meta\b[^>]*\bcontent="([^"]+)"[^>]*\bname="cover"""")
+                        .find(opfXml)?.groupValues?.get(1)
+                if (metaId != null) {
+                    val targetItem = items.firstOrNull { attr(it.value, "id") == metaId }
+                    val mime = targetItem?.let { attr(it.value, "media-type") } ?: ""
+                    if (mime.startsWith("image/"))
+                        coverHref = targetItem?.let { attr(it.value, "href") }
+                    // else: points to XHTML cover page — handled by renderEpubXhtmlSvgCover()
+                }
+            }
+
+            // Strategy C: any image item whose filename starts with "cover" or "front"
+            if (coverHref == null)
+                coverHref = items.firstOrNull { item ->
+                    val mime = attr(item.value, "media-type") ?: return@firstOrNull false
+                    if (!mime.startsWith("image/")) return@firstOrNull false
+                    val fn = (attr(item.value, "href") ?: "").substringAfterLast("/").lowercase()
+                    fn.startsWith("cover") || fn.startsWith("front")
+                }?.let { attr(it.value, "href") }
+
+            // Strategy D: heuristic — scan all ZIP entries for an image with "cover" in the path
+            if (coverHref == null) {
+                val imgExts = setOf("jpg", "jpeg", "png", "webp")
+                val entry = zip.entries().asSequence().firstOrNull { e ->
+                    !e.isDirectory && e.name.lowercase().let { n ->
+                        n.contains("cover") && n.substringAfterLast('.') in imgExts
+                    }
+                }
+                if (entry != null) return zip.getInputStream(entry).use { it.readBytes() }
+            }
+
+            coverHref ?: return null
+
+            // ── Step 3: read image bytes ──────────────────────────────────
+            val fullHref = resolveEpubHref(opfDir, coverHref)
+            val entry = zip.getEntry(fullHref) ?: zip.getEntry(coverHref) ?: return null
+            zip.getInputStream(entry).use { it.readBytes() }
+        }
+    } catch (_: Exception) { null }
+
+    /**
+     * Renders raw SVG bytes to a [Bitmap] using AndroidSVG.
+     *
+     * Called whenever a cover image extracted from an EPUB cannot be decoded as a
+     * raster image by [android.graphics.BitmapFactory] — most commonly because the
+     * EPUB stores its cover as a standalone SVG file rather than JPEG/PNG/WebP.
+     * By centralising SVG-to-bitmap conversion here both [getOrCreateEpubCoverCache]
+     * and [renderEpubXhtmlSvgCover] (sub-case B) can delegate to it without
+     * duplicating the AndroidSVG boilerplate.
+     *
+     * Returns null if [bytes] cannot be parsed as valid SVG or if rendering fails.
+     */
+    private fun renderBytesAsSvg(bytes: ByteArray): android.graphics.Bitmap? = try {
+        val svg    = com.caverock.androidsvg.SVG.getFromString(bytes.toString(Charsets.UTF_8))
+        val vb     = svg.documentViewBox
+        val aspect = if (vb != null && vb.height() > 0) vb.width() / vb.height() else 2f / 3f
+        val bmpH   = 900
+        val bmpW   = (bmpH * aspect).toInt().coerceAtLeast(1)
+        val bitmap = android.graphics.Bitmap.createBitmap(bmpW, bmpH, android.graphics.Bitmap.Config.ARGB_8888)
+        svg.renderToCanvas(android.graphics.Canvas(bitmap))
+        bitmap
+    } catch (_: Exception) { null }
+
+    /**
+     * Resolves [href] relative to [baseDir] (the OPF's containing directory),
+     * collapsing any ".." path segments so the result can be passed directly
+     * to ZipFile.getEntry().
+     */
+    private fun resolveEpubHref(baseDir: String, href: String): String {
+        if (href.startsWith("/")) return href.trimStart('/')
+        if (baseDir.isEmpty()) return href
+        val parts = "$baseDir/$href".split("/")
+        val resolved = mutableListOf<String>()
+        for (part in parts) when (part) {
+            "", "." -> {}
+            ".."    -> if (resolved.isNotEmpty()) resolved.removeAt(resolved.lastIndex)
+            else    -> resolved.add(part)
+        }
+        return resolved.joinToString("/")
+    }
+
+    /**
+     * Handles EPUBs whose OPF meta-cover points to an XHTML page rather than a raster
+     * image — a pattern used by ebooklib and several other generators.
+     *
+     * Two sub-cases are supported:
+     *
+     *   A. Inline SVG — the XHTML body contains a <svg …>…</svg> block.
+     *      The SVG is extracted, rendered to a 600 × 900 Bitmap via AndroidSVG,
+     *      and returned. The cover's declared viewBox is preserved; if none is
+     *      present the canvas is left at the default coordinate system.
+     *
+     *   B. <img> reference — the XHTML contains an <img src="…"> that points to
+     *      a raster image inside the ZIP. The image bytes are decoded to a Bitmap
+     *      and returned directly (no SVG library needed).
+     *
+     * Returns null if the EPUB has no XHTML cover page, or if neither SVG nor
+     * <img> content can be found / decoded.
+     */
+    private fun renderEpubXhtmlSvgCover(path: String): android.graphics.Bitmap? = try {
+        java.util.zip.ZipFile(path).use { zip ->
+
+            // ── Locate OPF ──────────────────────────────────────────────────
+            val containerXml = zip.getEntry("META-INF/container.xml")
+                ?.let { zip.getInputStream(it).use { s -> s.readBytes().toString(Charsets.UTF_8) } }
+                ?: return null
+            val opfPath = Regex("""full-path=["']([^"']+)["']""")
+                .find(containerXml)?.groupValues?.get(1) ?: return null
+            val opfDir  = opfPath.substringBeforeLast("/", "")
+            val opfXml  = zip.getEntry(opfPath)
+                ?.let { zip.getInputStream(it).use { s -> s.readBytes().toString(Charsets.UTF_8) } }
+                ?: return null
+
+            fun attr(tag: String, name: String): String? =
+                Regex("""\b${Regex.escape(name)}=["']([^"']+)["']""").find(tag)?.groupValues?.get(1)
+
+            val items = Regex("""<item\b[^>]+/?>""", RegexOption.DOT_MATCHES_ALL)
+                .findAll(opfXml).toList()
+
+            // ── Find the XHTML cover item ────────────────────────────────────
+            // Try epub2 meta-cover first, then epub3 properties="cover-image" on XHTML
+            val metaId = Regex("""<meta\b[^>]*\bname=["']cover["'][^>]*\bcontent=["']([^"']+)["']""")
+                .find(opfXml)?.groupValues?.get(1)
+                ?: Regex("""<meta\b[^>]*\bcontent=["']([^"']+)["'][^>]*\bname=["']cover["']""")
+                    .find(opfXml)?.groupValues?.get(1)
+
+            // Resolve the XHTML cover href using two strategies in priority order:
+            //   1. epub2: follow the meta-cover id to its manifest item (if it's XHTML)
+            //   2. epub3 heuristic: any XHTML manifest item whose filename starts with "cover"
+            //
+            // Strategy 2 always runs as fallback — even when metaId is set but resolves to
+            // nothing (e.g. the meta content="cover-image" but no item has id="cover-image").
+            val xhtmlHref: String = run {
+                var href: String? = null
+                if (metaId != null) {
+                    val target = items.firstOrNull { attr(it.value, "id") == metaId }
+                    val mime   = target?.let { attr(it.value, "media-type") } ?: ""
+                    if (mime.contains("xhtml") || mime.contains("html"))
+                        href = target?.let { attr(it.value, "href") }
+                }
+                if (href == null) {
+                    href = items.firstOrNull { item ->
+                        val mime = attr(item.value, "media-type") ?: ""
+                        val h    = attr(item.value, "href") ?: ""
+                        (mime.contains("xhtml") || mime.contains("html")) &&
+                            h.substringAfterLast("/").lowercase().startsWith("cover")
+                    }?.let { attr(it.value, "href") }
+                }
+                href
+            } ?: return null
+
+            val fullXhtmlHref = resolveEpubHref(opfDir, xhtmlHref)
+            val xhtmlEntry    = zip.getEntry(fullXhtmlHref) ?: zip.getEntry(xhtmlHref) ?: return null
+            val xhtmlContent  = zip.getInputStream(xhtmlEntry).use { it.readBytes().toString(Charsets.UTF_8) }
+
+            // ── Sub-case A: inline SVG ───────────────────────────────────────
+            val svgBlock = Regex("""<svg\b.*?</svg>""",
+                setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE)
+            ).find(xhtmlContent)?.value
+
+            if (svgBlock != null) {
+                return try {
+                    val svg    = com.caverock.androidsvg.SVG.getFromString(svgBlock)
+                    val vb     = svg.documentViewBox
+                    val aspect = if (vb != null && vb.height() > 0) vb.width() / vb.height() else 2f / 3f
+                    val bmpH   = 900
+                    val bmpW   = (bmpH * aspect).toInt().coerceAtLeast(1)
+                    val bitmap = android.graphics.Bitmap.createBitmap(
+                        bmpW, bmpH, android.graphics.Bitmap.Config.ARGB_8888
+                    )
+                    val canvas = android.graphics.Canvas(bitmap)
+                    svg.renderToCanvas(canvas)
+                    bitmap
+                } catch (_: Exception) { null }
+            }
+
+            // ── Sub-case B: <img src="…"> reference ─────────────────────────
+            val imgSrc = Regex("""<img\b[^>]*\bsrc="([^"]+)"""", RegexOption.IGNORE_CASE)
+                .find(xhtmlContent)?.groupValues?.get(1) ?: return null
+            val imgHref  = resolveEpubHref(opfDir, imgSrc)
+            val imgEntry = zip.getEntry(imgHref) ?: zip.getEntry(imgSrc) ?: return null
+            val imgBytes = zip.getInputStream(imgEntry).use { it.readBytes() }
+            // Try raster decode first; if the referenced image is an SVG (not a raster),
+            // fall back to AndroidSVG so any cover format is handled uniformly.
+            android.graphics.BitmapFactory.decodeByteArray(imgBytes, 0, imgBytes.size)
+                ?: renderBytesAsSvg(imgBytes)
+        }
+    } catch (_: Exception) { null }
+
+    /**
      * Extracts the embedded album-art bitmap directly from the audio file's
      * ID3 / Vorbis tags using [MediaMetadataRetriever].
      *
@@ -499,6 +1077,7 @@ class FileAdapter(
         FileType.PDF          -> R.drawable.ic_file_pdf
         FileType.ARCHIVE      -> R.drawable.ic_file_archive
         FileType.APK          -> R.drawable.ic_file_apk
+        FileType.EBOOK        -> R.drawable.ic_file_epub
         FileType.CODE         -> R.drawable.ic_file_code
         FileType.SPREADSHEET  -> R.drawable.ic_file_spreadsheet
         FileType.PRESENTATION -> R.drawable.ic_file_presentation

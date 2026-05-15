@@ -73,6 +73,7 @@ enum class FileType(val iconRes: Int, val colorRes: Int) {
     PDF(R.drawable.ic_file_pdf,               R.color.category_document),
     ARCHIVE(R.drawable.ic_file_archive,       R.color.category_archive),
     APK(R.drawable.ic_file_apk,               R.color.category_apk),
+    EBOOK(R.drawable.ic_file_epub,            R.color.category_ebook),
     CODE(R.drawable.ic_file_code,             R.color.md_theme_tertiary),
     SPREADSHEET(R.drawable.ic_file_spreadsheet, R.color.category_document),
     PRESENTATION(R.drawable.ic_file_presentation, R.color.category_archive),
@@ -84,8 +85,8 @@ enum class FileType(val iconRes: Int, val colorRes: Int) {
             "mp4", "mkv", "avi", "mov", "wmv", "flv", "3gp", "webm", "m4v", "ts" -> VIDEO
             "mp3", "flac", "aac", "wav", "ogg", "m4a", "wma", "opus", "aiff" -> AUDIO
             "pdf" -> PDF
-            "doc", "docx", "odt", "rtf", "txt", "md", "html", "htm", "xml", "json", "yaml", "yml", "epub",
-            "9genc" -> DOCUMENT
+            "doc", "docx", "odt", "rtf", "txt", "md", "html", "htm", "xml", "json", "yaml", "yml" -> DOCUMENT
+            "epub", "9genc" -> EBOOK
             "zip", "rar", "7z", "tar", "gz", "bz2", "xz", "tar.gz", "tar.bz2", "tar.xz" -> ARCHIVE
             "apk", "xapk", "apks" -> APK
             "kt", "java", "py", "js", "ts", "cpp", "c", "h", "cs", "go", "rb", "php", "swift", "rs" -> CODE

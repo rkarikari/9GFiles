@@ -233,7 +233,7 @@ class FileExplorerFragment : Fragment() {
                 R.id.action_share -> { shareFiles(items); true }
                 R.id.action_wifi_direct_send -> {
                     val bundle = android.os.Bundle().apply {
-                        putStringArrayList("pendingFilePaths", ArrayList(items.map { it.path }))
+                        putStringArray("pendingFilePaths", items.map { it.path }.toTypedArray())
                     }
                     findNavController().navigate(R.id.action_explorer_to_wifi_direct, bundle)
                     true
@@ -496,7 +496,7 @@ class FileExplorerFragment : Fragment() {
             }
             R.id.action_wifi_direct_send -> {
                 val bundle = android.os.Bundle().apply {
-                    putStringArrayList("pendingFilePaths", arrayListOf(item.path))
+                    putStringArray("pendingFilePaths", arrayOf(item.path))
                 }
                 findNavController().navigate(R.id.action_explorer_to_wifi_direct, bundle)
             }
@@ -787,12 +787,10 @@ class FileExplorerFragment : Fragment() {
             }
             FileType.APK -> rootNavController.navigate(R.id.apkInfoFragment,
                 android.os.Bundle().apply { putString("apkPath", item.path) })
+            FileType.EBOOK -> rootNavController.navigate(R.id.epubReaderFragment,
+                android.os.Bundle().apply { putString("epubPath", item.path) })
             FileType.CODE, FileType.DOCUMENT -> {
-                val ext = item.extension.lowercase()
-                if (ext == "epub" || ext == "9genc")
-                    rootNavController.navigate(R.id.epubReaderFragment,
-                        android.os.Bundle().apply { putString("epubPath", item.path) })
-                else if (com.radiozport.ninegfiles.utils.FileUtils.isTextFile(item.file))
+                if (com.radiozport.ninegfiles.utils.FileUtils.isTextFile(item.file))
                     rootNavController.navigate(R.id.textEditorFragment,
                         android.os.Bundle().apply { putString("filePath", item.path) })
                 else openWithSystem(item)

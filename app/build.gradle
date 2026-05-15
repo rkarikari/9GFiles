@@ -13,8 +13,8 @@ android {
         applicationId "com.radiozport.ninegfiles"
         minSdk 26
         targetSdk 35
-        versionCode 15
-        versionName "1.15"
+        versionCode 22
+        versionName "1.22"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         vectorDrawables {
@@ -161,6 +161,9 @@ dependencies {
 
     // QR code generation (ZXing core)
     implementation 'com.google.zxing:core:3.5.2'
+
+    // AndroidSVG — renders inline SVG covers from XHTML ePub cover pages
+    implementation 'com.caverock:androidsvg-aar:1.4'
 
     // Chromecast / Google Cast
     implementation 'com.google.android.gms:play-services-cast-framework:21.5.0'

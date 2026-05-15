@@ -6,10 +6,15 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.*
 import androidx.core.os.bundleOf
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
+import com.radiozport.ninegfiles.utils.DeviceKeyManager
 import com.radiozport.ninegfiles.utils.EncryptionUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -38,13 +43,6 @@ class EpubReaderFragment : Fragment() {
     companion object {
         const val ARG_PATH = "epubPath"
 
-        /**
-         * Default key used to open `.9genc` encrypted ePub files.
-         * Decryption is performed entirely in memory — no plaintext file
-         * is ever written to disk or exposed outside this process.
-         */
-        private const val DEFAULT_DECRYPT_KEY = "radiosport"
-
         fun newInstance(path: String) = EpubReaderFragment().apply {
             arguments = bundleOf(ARG_PATH to path)
         }
@@ -59,7 +57,22 @@ class EpubReaderFragment : Fragment() {
     private lateinit var btnNext:     MaterialButton
     private lateinit var btnChapters: MaterialButton
     private lateinit var progressBar: ProgressBar
+    private lateinit var topBar:      LinearLayout
+    private lateinit var navBar:      LinearLayout
+    private lateinit var btnFullScreen: ImageButton
 
+    // Full-screen overlay (shown on tap while in full-screen mode)
+    private lateinit var fsOverlay:      FrameLayout
+    private lateinit var btnFsExit:      ImageButton
+    private lateinit var btnFsPrev:      MaterialButton
+    private lateinit var btnFsNext:      MaterialButton
+    private lateinit var tvFsProgress:   TextView
+    private lateinit var fsBottomStrip:  LinearLayout
+    private lateinit var fsTopStrip:     LinearLayout
+    private val overlayHandler           = android.os.Handler(android.os.Looper.getMainLooper())
+    private val overlayHideRunnable      = Runnable { hideFullScreenOverlay() }
+
+    private var isFullScreen:    Boolean = false
     private var chapters:        List<Chapter> = emptyList()
     private var currentIdx:      Int = 0
     private var zipFile:         ZipFile? = null
@@ -83,10 +96,13 @@ class EpubReaderFragment : Fragment() {
         val root = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = ViewGroup.LayoutParams(-1, -1)
+            // Prevent the window's dark background from bleeding through when
+            // the top/bottom bars are hidden in full-screen mode.
+            setBackgroundColor(ctx.getColor(com.radiozport.ninegfiles.R.color.md_theme_surface))
         }
 
         // ── top bar ──────────────────────────────────────────────────────
-        val topBar = LinearLayout(ctx).apply {
+        topBar = LinearLayout(ctx).apply {
             orientation = LinearLayout.HORIZONTAL
             setBackgroundColor(ctx.getColor(com.radiozport.ninegfiles.R.color.md_theme_surface))
             layoutParams = LinearLayout.LayoutParams(-1, (56 * dp).toInt())
@@ -130,10 +146,21 @@ class EpubReaderFragment : Fragment() {
             setOnClickListener { printCurrentChapter() }
         }
 
+        btnFullScreen = ImageButton(ctx).apply {
+            setImageResource(com.radiozport.ninegfiles.R.drawable.ic_fullscreen)
+            background = ctx.obtainStyledAttributes(
+                intArrayOf(android.R.attr.selectableItemBackgroundBorderless)
+            ).getDrawable(0)
+            contentDescription = "Toggle full screen"
+            layoutParams = LinearLayout.LayoutParams((44 * dp).toInt(), (44 * dp).toInt())
+            setOnClickListener { toggleFullScreen() }
+        }
+
         topBar.addView(btnBack)
         topBar.addView(tvTitle)
         topBar.addView(btnChapters)
         topBar.addView(btnPrint)
+        topBar.addView(btnFullScreen)
         root.addView(topBar)
 
         // ── divider ──────────────────────────────────────────────────────
@@ -198,11 +225,130 @@ class EpubReaderFragment : Fragment() {
                 }
             }
             layoutParams = LinearLayout.LayoutParams(-1, 0, 1f)
+            // WebView consumes touch events itself, so setOnClickListener never
+            // fires reliably after the first render.  A GestureDetector wired to
+            // setOnTouchListener intercepts the raw MotionEvent stream before the
+            // WebView can swallow it, giving us a dependable single-tap signal.
+            val tapDetector = GestureDetector(ctx,
+                object : GestureDetector.SimpleOnGestureListener() {
+                    override fun onSingleTapUp(e: MotionEvent): Boolean {
+                        if (isFullScreen) {
+                            if (fsOverlay.visibility == View.VISIBLE) hideFullScreenOverlay()
+                            else showFullScreenOverlay()
+                        }
+                        return false   // false = let the WebView still handle the tap normally
+                    }
+                })
+            @Suppress("ClickableViewAccessibility")
+            setOnTouchListener { v, event ->
+                tapDetector.onTouchEvent(event)
+                // Return false so the WebView continues to receive and process
+                // the event (scrolling, link clicks, zoom, etc.)
+                false
+            }
         }
-        root.addView(webView)
+
+        // ── Full-screen overlay (Prev / Exit / Next — appears on tap) ─────────
+        fsOverlay = FrameLayout(ctx).apply {
+            visibility = View.GONE
+            layoutParams = FrameLayout.LayoutParams(-1, -1)
+        }
+
+        // Top strip: exit-full-screen button + title
+        fsTopStrip = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setBackgroundColor(0xCC000000.toInt())
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            setPadding((8 * dp).toInt(), 0, (8 * dp).toInt(), 0)
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                (56 * dp).toInt(),
+                android.view.Gravity.TOP
+            )
+        }
+
+        btnFsExit = ImageButton(ctx).apply {
+            setImageResource(com.radiozport.ninegfiles.R.drawable.ic_fullscreen_exit)
+            background = ctx.obtainStyledAttributes(
+                intArrayOf(android.R.attr.selectableItemBackgroundBorderless)
+            ).getDrawable(0)
+            contentDescription = "Exit full screen"
+            setColorFilter(android.graphics.Color.WHITE)
+            layoutParams = LinearLayout.LayoutParams((44 * dp).toInt(), (44 * dp).toInt())
+            setOnClickListener { toggleFullScreen() }
+        }
+
+        val tvFsTitle = TextView(ctx).apply {
+            text = epubTitle
+            setTextColor(android.graphics.Color.WHITE)
+            setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleSmall)
+            layoutParams = LinearLayout.LayoutParams(0, -2, 1f).apply {
+                marginStart = (8 * dp).toInt()
+            }
+            maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.END
+        }
+
+        fsTopStrip.addView(btnFsExit)
+        fsTopStrip.addView(tvFsTitle)
+        fsOverlay.addView(fsTopStrip)
+
+        // Bottom strip: Prev / progress / Next
+        fsBottomStrip = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER
+            setBackgroundColor(0xCC000000.toInt())
+            setPadding((12 * dp).toInt(), (8 * dp).toInt(), (12 * dp).toInt(), (8 * dp).toInt())
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                android.view.Gravity.BOTTOM
+            )
+        }
+
+        btnFsPrev = MaterialButton(ctx, null,
+            com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+            text = "◀  Prev"
+            isEnabled = false
+            setTextColor(android.graphics.Color.WHITE)
+            strokeColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.WHITE)
+            layoutParams = LinearLayout.LayoutParams(0, -2, 1f).apply {
+                marginEnd = (8 * dp).toInt()
+            }
+        }
+
+        tvFsProgress = TextView(ctx).apply {
+            text = "- / -"
+            setTextColor(android.graphics.Color.WHITE)
+            setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_LabelMedium)
+            gravity = android.view.Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(-2, -2)
+        }
+
+        btnFsNext = MaterialButton(ctx).apply {
+            text = "Next  ▶"
+            isEnabled = false
+            layoutParams = LinearLayout.LayoutParams(0, -2, 1f).apply {
+                marginStart = (8 * dp).toInt()
+            }
+        }
+
+        fsBottomStrip.addView(btnFsPrev)
+        fsBottomStrip.addView(tvFsProgress)
+        fsBottomStrip.addView(btnFsNext)
+        fsOverlay.addView(fsBottomStrip)
+
+        // Wrap WebView + overlay in a FrameLayout so the overlay floats above
+        val webViewContainer = FrameLayout(ctx).apply {
+            layoutParams = LinearLayout.LayoutParams(-1, 0, 1f)
+        }
+        webView.layoutParams = FrameLayout.LayoutParams(-1, -1)
+        webViewContainer.addView(webView)
+        webViewContainer.addView(fsOverlay)
+        root.addView(webViewContainer)
 
         // ── bottom nav bar ───────────────────────────────────────────────
-        val navBar = LinearLayout(ctx).apply {
+        navBar = LinearLayout(ctx).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity     = android.view.Gravity.CENTER
             setPadding((12 * dp).toInt(), (8 * dp).toInt(), (12 * dp).toInt(), (8 * dp).toInt())
@@ -241,6 +387,62 @@ class EpubReaderFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // ── Window insets (edge-to-edge, mandatory on targetSdk 35 / Android 15) ──
+        // On API 35+ Android forces the app to draw behind both the status bar
+        // and the navigation bar.  Without inset handling the bottom navBar
+        // (Prev / Next buttons) ends up hidden under the system navigation bar on
+        // short-screen devices, and the top bar overlaps the status bar.
+        //
+        // We resolve the correct bar heights at layout time — not at build time —
+        // because:
+        //   • gesture navigation produces a thin or zero-height bar
+        //   • 3-button navigation produces a tall (~48 dp) bar
+        //   • the height varies per device, orientation, and user setting
+        //
+        // ViewCompat.setOnApplyWindowInsetsListener is called every time the
+        // insets change (orientation flip, nav-mode switch, IME appears/hides).
+        val dp = resources.displayMetrics.density
+        // Store the original padding values that were set in onCreateView so we
+        // can add the inset on top of them without accumulating across calls.
+        val topBarBasePadH = (8 * dp).toInt()
+        val navBarBasePadH = (12 * dp).toInt()
+        val navBarBasePadV = (8 * dp).toInt()
+
+        ViewCompat.setOnApplyWindowInsetsListener(view) { _, insets ->
+            val sysBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+
+            // Top bar: grow its height to absorb the status-bar inset so the
+            // 56 dp of usable content always sits below the status bar icons.
+            val topBarParams = topBar.layoutParams as LinearLayout.LayoutParams
+            topBarParams.height = (56 * dp).toInt() + sysBars.top
+            topBar.layoutParams = topBarParams
+            topBar.setPadding(topBarBasePadH, sysBars.top, topBarBasePadH, 0)
+
+            // Bottom nav bar: add the navigation-bar inset as extra bottom
+            // padding so the Prev / Next buttons are always fully visible above
+            // the system navigation bar (gesture strip or 3-button row).
+            navBar.setPadding(
+                navBarBasePadH, navBarBasePadV,
+                navBarBasePadH, navBarBasePadV + sysBars.bottom
+            )
+
+            // Full-screen overlay strips: mirror the same insets so controls
+            // are never hidden under system bars when they temporarily swipe in.
+            val fsTopParams = fsTopStrip.layoutParams as FrameLayout.LayoutParams
+            fsTopParams.height = (56 * dp).toInt() + sysBars.top
+            fsTopStrip.layoutParams = fsTopParams
+            fsTopStrip.setPadding(topBarBasePadH, sysBars.top, topBarBasePadH, 0)
+
+            fsBottomStrip.setPadding(
+                navBarBasePadH, navBarBasePadV,
+                navBarBasePadH, navBarBasePadV + sysBars.bottom
+            )
+
+            // Do not consume — pass insets through so child views (WebView,
+            // etc.) can also react if needed.
+            insets
+        }
+
         val path = arguments?.getString(ARG_PATH) ?: run {
             Toast.makeText(requireContext(), "No ePub path", Toast.LENGTH_SHORT).show()
             return
@@ -248,6 +450,20 @@ class EpubReaderFragment : Fragment() {
 
         btnPrev.setOnClickListener { if (currentIdx > 0) showChapter(currentIdx - 1) }
         btnNext.setOnClickListener { if (currentIdx < chapters.size - 1) showChapter(currentIdx + 1) }
+
+        // Full-screen overlay navigation — mirrors the normal nav buttons
+        btnFsPrev.setOnClickListener {
+            if (currentIdx > 0) {
+                showChapter(currentIdx - 1)
+                rescheduleOverlayHide()
+            }
+        }
+        btnFsNext.setOnClickListener {
+            if (currentIdx < chapters.size - 1) {
+                showChapter(currentIdx + 1)
+                rescheduleOverlayHide()
+            }
+        }
 
         btnChapters.setOnClickListener {
             if (chapters.isEmpty()) return@setOnClickListener
@@ -261,7 +477,11 @@ class EpubReaderFragment : Fragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val parsed = withContext(Dispatchers.IO) { parseEpub(path) }
+            // Format detection and decryption both run on IO — Keystore operations
+            // must not block the main thread.
+            val parsed = withContext(Dispatchers.IO) {
+                parseEpub(path)
+            }
             if (!isAdded) return@launch
             progressBar.isVisible = false
             if (parsed == null) {
@@ -315,6 +535,11 @@ class EpubReaderFragment : Fragment() {
             tvProgress.text  = "${idx + 1} / ${chapters.size}"
             btnPrev.isEnabled = idx > 0
             btnNext.isEnabled = idx < chapters.size - 1
+
+            // Keep the full-screen overlay controls in sync
+            tvFsProgress.text  = "${idx + 1} / ${chapters.size}"
+            btnFsPrev.isEnabled = idx > 0
+            btnFsNext.isEnabled = idx < chapters.size - 1
         }
     }
 
@@ -476,9 +701,11 @@ class EpubReaderFragment : Fragment() {
      * appropriate loading strategy.
      *
      * - **Plain `.epub`**: opened as a [ZipFile] (on-disk, random-access).
-     * - **`.9genc`**: decrypted in-memory via [EncryptionUtils.decryptToBytes]
-     *   with [DEFAULT_DECRYPT_KEY]; the resulting ZIP bytes are expanded into
-     *   [epubEntries] and never written to any file.
+     * - **`.9genc` / `9GEK`**: device-key hybrid format — the RSA-wrapped AES
+     *   session key is unwrapped by [DeviceKeyManager.decryptSessionKey] inside
+     *   the Keystore; the ePub is then AES-256-GCM decrypted in-memory.
+     * - **`.9genc` / `9GEF`**: legacy password-based format — not auto-opened
+     *   by the reader (requires a user-supplied password).
      */
     private suspend fun parseEpub(path: String): List<Chapter>? {
         return if (path.endsWith(EncryptionUtils.ENCRYPTED_EXT, ignoreCase = true)) {
@@ -504,19 +731,48 @@ class EpubReaderFragment : Fragment() {
     }
 
     /**
-     * Decrypts [path] (a `.9genc` file) entirely in memory using
-     * [DEFAULT_DECRYPT_KEY], loads every ZIP entry into [epubEntries], then
-     * parses the OPF manifest from that in-memory map.
+     * Attempts to open an encrypted `.9genc` file for reading.
      *
-     * No plaintext data is ever written to disk or exposed outside this process.
+     * Behaviour depends on the file's magic-byte format header:
+     *
+     * **`9GEK` (device-key hybrid):** The RSA-OAEP-wrapped AES session key is
+     * unwrapped by [DeviceKeyManager.decryptSessionKey] inside the Android
+     * Keystore (the private key never leaves secure hardware).  The ePub bytes
+     * are then AES-256-GCM decrypted entirely in memory — no plaintext file is
+     * ever written to disk.
+     *
+     * SHA-1/MGF1-SHA-1 OAEP is used exclusively — the only parameter set
+     * universally applied by every Android Keystore variant, including OEM
+     * implementations that ignore explicit [OAEPParameterSpec] values.
+     * SHA-256 is not used as a fallback; it is not reliably supported across
+     * all devices.
+     *
+     * **`9GEF` (password-based):** These files require a user-supplied password
+     * and are not auto-opened by the reader.  Returns `null` so the caller can
+     * surface an appropriate message.
+     *
+     * **Unknown format:** Returns `null`.
      */
     private suspend fun parseEncryptedEpub(path: String): List<Chapter>? {
-        val decryptedBytes = EncryptionUtils.decryptToBytes(File(path), DEFAULT_DECRYPT_KEY)
-            ?: return null   // bad magic, wrong key, or I/O error
-        val entries = loadZipEntries(decryptedBytes)
-        if (entries.isEmpty()) return null
-        epubEntries = entries
-        return parseOpf { entryName -> entries[entryName] }
+        val file = File(path)
+        return when (EncryptionUtils.detectFormat(file)) {
+            EncryptionUtils.EncryptionFormat.DEVICE_KEY -> {
+                // SHA-1/MGF1-SHA-1: universal Keystore compat, matches encryptForDevice()
+                val decryptedBytes = EncryptionUtils.decryptDeviceToBytes(
+                    source              = file,
+                    sessionKeyDecryptor = { DeviceKeyManager.decryptSessionKey(it) }
+                ) ?: return null
+                val entries = loadZipEntries(decryptedBytes)
+                if (entries.isEmpty()) return null
+                epubEntries = entries
+                parseOpf { entryName -> entries[entryName] }
+            }
+            EncryptionUtils.EncryptionFormat.PASSWORD_BASED -> {
+                // Password-based files cannot be auto-opened; surface to the caller
+                null
+            }
+            null -> null
+        }
     }
 
     /**
@@ -615,7 +871,116 @@ class EpubReaderFragment : Fragment() {
             android.print.PrintAttributes.Builder().build())
     }
 
+    // ---------- full-screen ------------------------------------------------
+
+    /**
+     * Toggles immersive full-screen mode.
+     *
+     * Entering full-screen:
+     *  • Hides [topBar] (eBook Reader label + file path area) and [navBar]
+     *    so the WebView content fills the entire display.
+     *  • Hides system status-bar and navigation-bar via
+     *    [WindowInsetsControllerCompat] with BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE,
+     *    so a swipe from any edge reveals them temporarily without leaving full-screen.
+     *  • Swaps the button icon to [ic_fullscreen_exit].
+     *
+     * Exiting full-screen (tap anywhere on the WebView, or tap the button again):
+     *  • Restores [topBar], [navBar], and system bars.
+     *  • Swaps the button icon back to [ic_fullscreen].
+     */
+    private fun toggleFullScreen() {
+        isFullScreen = !isFullScreen
+        val window     = requireActivity().window
+        val controller = WindowInsetsControllerCompat(window, window.decorView)
+
+        if (isFullScreen) {
+            (requireActivity() as? androidx.appcompat.app.AppCompatActivity)
+                ?.supportActionBar?.hide()
+            topBar.isVisible = false
+            navBar.isVisible = false
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            btnFullScreen.setImageResource(com.radiozport.ninegfiles.R.drawable.ic_fullscreen_exit)
+            // Show overlay briefly so the user knows how to navigate
+            showFullScreenOverlay()
+        } else {
+            exitFullScreen()
+        }
+    }
+
+    /** Restores all UI chrome and system bars. */
+    private fun exitFullScreen() {
+        isFullScreen = false
+        hideFullScreenOverlay()
+        (requireActivity() as? androidx.appcompat.app.AppCompatActivity)
+            ?.supportActionBar?.show()
+        topBar.isVisible = true
+        navBar.isVisible = true
+        val window = requireActivity().window
+        WindowInsetsControllerCompat(window, window.decorView)
+            .show(WindowInsetsCompat.Type.systemBars())
+        btnFullScreen.setImageResource(com.radiozport.ninegfiles.R.drawable.ic_fullscreen)
+    }
+
+    /**
+     * Shows the full-screen navigation overlay and schedules it to auto-hide
+     * after 3 seconds of inactivity.
+     */
+    private fun showFullScreenOverlay() {
+        if (!isFullScreen) return
+        fsOverlay.visibility = View.VISIBLE
+        rescheduleOverlayHide()
+    }
+
+    /** Hides the full-screen navigation overlay immediately. */
+    private fun hideFullScreenOverlay() {
+        fsOverlay.visibility = View.GONE
+        overlayHandler.removeCallbacks(overlayHideRunnable)
+    }
+
+    /** Resets the 3-second auto-hide countdown. */
+    private fun rescheduleOverlayHide() {
+        overlayHandler.removeCallbacks(overlayHideRunnable)
+        overlayHandler.postDelayed(overlayHideRunnable, 3000)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Restore system bars and action bar whenever the fragment goes to the background
+        if (isFullScreen) {
+            val window = requireActivity().window
+            WindowInsetsControllerCompat(window, window.decorView)
+                .show(WindowInsetsCompat.Type.systemBars())
+            (requireActivity() as? androidx.appcompat.app.AppCompatActivity)
+                ?.supportActionBar?.show()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Re-apply immersive state if returning to the fragment while still full-screen
+        if (isFullScreen) {
+            val window     = requireActivity().window
+            val controller = WindowInsetsControllerCompat(window, window.decorView)
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            (requireActivity() as? androidx.appcompat.app.AppCompatActivity)
+                ?.supportActionBar?.hide()
+        }
+    }
+
     override fun onDestroyView() {
+        // Always restore system bars and activity action bar before the view is torn down
+        if (isFullScreen) {
+            val window = requireActivity().window
+            WindowInsetsControllerCompat(window, window.decorView)
+                .show(WindowInsetsCompat.Type.systemBars())
+            (requireActivity() as? androidx.appcompat.app.AppCompatActivity)
+                ?.supportActionBar?.show()
+        }
+        overlayHandler.removeCallbacks(overlayHideRunnable)
         chapterLoadJob?.cancel()
         webView.destroy()
         super.onDestroyView()

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    android:paddingStart="2dp"
+    android:paddingEnd="2dp">
+
+    <!-- Chapter number badge -->
+    <TextView
+        android:id="@+id/tvChapterNum"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:gravity="center"
+        android:text="1"
+        android:textAppearance="?attr/textAppearanceLabelSmall"
+        android:textColor="?attr/colorOnPrimary"
+        android:background="@drawable/shape_circle_accent"
+        android:layout_marginEnd="10dp"/>
+
+    <!-- Title + source + state -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginEnd="4dp">
+
+        <TextView
+            android:id="@+id/tvChapterTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chapter Title"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:drawablePadding="4dp"/>
+
+        <TextView
+            android:id="@+id/tvChapterSource"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="file.pdf  ·  PDF"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:maxLines="1"
+            android:ellipsize="end"/>
+
+        <TextView
+            android:id="@+id/tvChapterState"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✓ Done  3 pages"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:visibility="gone"/>
+    </LinearLayout>
+
+    <!-- Move up -->
+    <ImageButton
+        android:id="@+id/btnMoveUp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/ic_chevron_right"
+        android:rotation="-90"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Move up"
+        app:tint="?attr/colorOnSurfaceVariant"/>
+
+    <!-- Move down -->
+    <ImageButton
+        android:id="@+id/btnMoveDown"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/ic_chevron_right"
+        android:rotation="90"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Move down"
+        app:tint="?attr/colorOnSurfaceVariant"/>
+
+    <!-- Remove -->
+    <ImageButton
+        android:id="@+id/btnRemoveChapter"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/ic_close"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Remove chapter"
+        app:tint="?attr/colorError"/>
+
+</LinearLayout>

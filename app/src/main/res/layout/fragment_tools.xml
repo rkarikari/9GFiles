@@ -182,14 +182,16 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- ── New Features Divider ─────────────────────────── -->
+        <!-- ── Security & Privacy Divider ─────────────────────────── -->
         <com.google.android.material.divider.MaterialDivider
+            android:id="@+id/dividerSecurityPrivacy"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:layout_marginBottom="4dp"/>
 
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        <TextView android:id="@+id/tvSecurityPrivacyHeader"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
             android:text="Security &amp; Privacy"
             android:textAppearance="?attr/textAppearanceHeadlineSmall"
             android:layout_marginBottom="16dp" android:layout_marginTop="8dp"/>
@@ -211,6 +213,56 @@
                         android:text="Secure Vault" android:textAppearance="?attr/textAppearanceTitleMedium"/>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="AES-256 encrypted private storage"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"/>
+                </LinearLayout>
+                <ImageView android:layout_width="20dp" android:layout_height="20dp"
+                    android:src="@drawable/ic_chevron_right" app:tint="?attr/colorOnSurfaceVariant"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- eBook Builder -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardEbookBuilder"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" android:clickable="true" android:focusable="true"
+            app:cardCornerRadius="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="20dp">
+                <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                    android:src="@drawable/ic_file_document"
+                    android:background="@drawable/bg_icon_rounded"
+                    android:padding="8dp" app:tint="@color/category_document"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="16dp" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="ePub eBook Builder" android:textAppearance="?attr/textAppearanceTitleMedium"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Convert PDF, DOCX, TXT &amp; more into .epub"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"/>
+                </LinearLayout>
+                <ImageView android:layout_width="20dp" android:layout_height="20dp"
+                    android:src="@drawable/ic_chevron_right" app:tint="?attr/colorOnSurfaceVariant"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Publisher Tool -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardPublisherTool"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" android:clickable="true" android:focusable="true"
+            app:cardCornerRadius="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:padding="20dp">
+                <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                    android:src="@drawable/ic_share"
+                    android:background="@drawable/bg_icon_rounded"
+                    android:padding="8dp" app:tint="@color/category_archive"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="16dp" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Publisher Tool" android:textAppearance="?attr/textAppearanceTitleMedium"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Encrypt files for a specific device"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         android:textColor="?attr/colorOnSurfaceVariant"/>
                 </LinearLayout>
