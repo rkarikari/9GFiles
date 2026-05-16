@@ -29,6 +29,8 @@ import com.radiozport.ninegfiles.databinding.FragmentEpubBuilderBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.commonmark.parser.Parser
+import org.commonmark.renderer.html.HtmlRenderer
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.*
@@ -62,7 +64,9 @@ private enum class EpubTheme(val label: String, val bg: String, val fg: String, 
 private data class BuiltChapter(
     val xhtmlName: String,
     val title: String,
-    val imageItems: List<Pair<String, String>>   // (manifest-id, OEBPS-relative-href)
+    val imageItems: List<Pair<String, String>>,  // (manifest-id, OEBPS-relative-href)
+    val isPdf: Boolean = false,
+    val pdfPageCount: Int = 0
 )
 
 // ─── Fragment ──────────────────────────────────────────────────────────────────
@@ -369,14 +373,37 @@ class EpubBuilderFragment : Fragment() {
                 for ((idx, entry) in chapters.withIndex()) {
                     setState(idx, ChapterState.PROCESSING)
                     val chId = "ch_%03d".format(idx + 1)
-                    val xn   = "$chId.xhtml"
+                    val xn   = "$chId.xhtml"   // fallback name used only by the error handler
                     val imgs = mutableListOf<Pair<String, String>>()
+                    // PDFs write one XHTML per page and push directly to `built`;
+                    // all other types write a single XHTML and fall through to the
+                    // common built.add() below.
+                    var addedToBuilt = false
                     try {
                         when {
                             isPdf(entry)   -> {
                                 val pages = renderPdfPages(ctx, entry, chId, zos, tmpDir)
-                                imgs.addAll(pages); entry.pageCount = pages.size
-                                zos.text("OEBPS/$xn", pdfXhtml(entry.chapterTitle, pages))
+                                entry.pageCount = pages.size
+                                // One XHTML file per rendered page keeps each spine item
+                                // small.  The reader (EpubReaderFragment) loads one spine
+                                // item at a time; putting all pages in a single file would
+                                // force it to base64-embed every image at once, producing a
+                                // string that can exceed the process heap limit on large PDFs.
+                                pages.forEachIndexed { pi, (imgId, imgHref) ->
+                                    val pgXn = "${chId}_p%03d.xhtml".format(pi + 1)
+                                    val pgTitle = if (pages.size == 1) entry.chapterTitle
+                                                  else "${entry.chapterTitle} · p.${pi + 1}"
+                                    zos.text("OEBPS/$pgXn",
+                                        pdfXhtml(pgTitle, listOf(imgId to imgHref)))
+                                    built.add(BuiltChapter(
+                                        xhtmlName    = pgXn,
+                                        title        = pgTitle,
+                                        imageItems   = listOf(imgId to imgHref),
+                                        isPdf        = true,
+                                        pdfPageCount = 1
+                                    ))
+                                }
+                                addedToBuilt = true
                             }
                             isDocx(entry)  -> zos.text("OEBPS/$xn",
                                 textXhtml(entry.chapterTitle, extractDocxText(ctx, entry.uri)))
@@ -412,6 +439,10 @@ class EpubBuilderFragment : Fragment() {
                                 entry.pageCount = 1
                                 zos.text("OEBPS/$xn", imageXhtml(entry.chapterTitle, imgHref, mediaMime))
                             }
+                            isMarkdown(entry) -> zos.text("OEBPS/$xn",
+                                markdownXhtml(entry.chapterTitle,
+                                    ctx.contentResolver.openInputStream(entry.uri)
+                                        ?.bufferedReader()?.readText() ?: ""))
                             else           -> zos.text("OEBPS/$xn",
                                 textXhtml(entry.chapterTitle,
                                     ctx.contentResolver.openInputStream(entry.uri)
@@ -421,25 +452,71 @@ class EpubBuilderFragment : Fragment() {
                     } catch (e: Exception) {
                         entry.errorMsg = e.message?.take(60)
                         setState(idx, ChapterState.ERROR)
+                        // Write a fallback error page under the base chapter name so
+                        // the OPF spine always has a valid entry for this source file.
                         zos.text("OEBPS/$xn", textXhtml(entry.chapterTitle,
                             "[Error: ${entry.displayName}: ${e.message}]"))
+                        addedToBuilt = false   // ensure the error entry lands in built
                     }
-                    built.add(BuiltChapter(xn, entry.chapterTitle, imgs))
+                    if (!addedToBuilt) {
+                        built.add(BuiltChapter(
+                            xhtmlName    = xn,
+                            title        = entry.chapterTitle,
+                            imageItems   = imgs.toList(),
+                            isPdf        = false,
+                            pdfPageCount = 0
+                        ))
+                    }
                     bump()
                 }
 
                 if (cUri != null) {
-                    ctx.contentResolver.openInputStream(cUri)?.use { ins ->
-                        zos.putNextEntry(ZipEntry("OEBPS/cover.jpg"))
-                        ins.copyTo(zos); zos.closeEntry()
+                    // Detect the real cover format — never assume JPEG
+                    val rawMime  = ctx.contentResolver.getType(cUri) ?: "image/jpeg"
+                    val coverExt = when (rawMime) {
+                        "image/png"  -> "png"
+                        "image/gif"  -> "gif"
+                        "image/webp" -> "webp"
+                        else         -> "jpg"
                     }
-                    zos.text("OEBPS/cover.xhtml", buildCoverXhtml())
+                    val coverMime = when (coverExt) {
+                        "png"  -> "image/png"
+                        "gif"  -> "image/gif"
+                        "webp" -> "image/webp"
+                        else   -> "image/jpeg"
+                    }
+                    val coverFilename = "cover.$coverExt"
+                    var coverWritten  = false
+                    ctx.contentResolver.openInputStream(cUri)?.use { ins ->
+                        zos.putNextEntry(ZipEntry("OEBPS/$coverFilename"))
+                        ins.copyTo(zos); zos.closeEntry()
+                        coverWritten = true
+                    }
+                    if (coverWritten) {
+                        zos.text("OEBPS/cover.xhtml", buildCoverXhtml(coverFilename))
+                        zos.text("OEBPS/style.css",   buildCss(theme, fontSize))
+                        zos.text("OEBPS/nav.xhtml",   buildNav(title, built))
+                        zos.text("OEBPS/content.opf", buildOpf(title, author, lang, desc, publisher,
+                            uid, hasCover = true, chs = built,
+                            coverFilename = coverFilename, coverMime = coverMime))
+                        bump()
+                    } else {
+                        // Cover stream was null — build without cover so OPF stays consistent
+                        zos.text("OEBPS/style.css",   buildCss(theme, fontSize))
+                        zos.text("OEBPS/nav.xhtml",   buildNav(title, built))
+                        zos.text("OEBPS/content.opf", buildOpf(title, author, lang, desc, publisher,
+                            uid, hasCover = false, chs = built))
+                        bump()
+                    }
+                } else {
+                    // No cover selected
+                    zos.text("OEBPS/style.css",   buildCss(theme, fontSize))
+                    zos.text("OEBPS/nav.xhtml",   buildNav(title, built))
+                    zos.text("OEBPS/content.opf", buildOpf(title, author, lang, desc, publisher,
+                        uid, hasCover = false, chs = built))
+                    bump()
                 }
-                zos.text("OEBPS/style.css",    buildCss(theme, fontSize))
-                zos.text("OEBPS/nav.xhtml",    buildNav(title, built))
-                zos.text("OEBPS/content.opf",  buildOpf(title, author, lang, desc, publisher, uid, cUri != null, built))
-                bump()
-            }
+            }   // end ZipOutputStream.use
         } finally { tmpDir.deleteRecursively() }
 
         return outFile.absolutePath
@@ -467,18 +544,26 @@ class EpubBuilderFragment : Fragment() {
             repeat(rnd.pageCount) { pi ->
                 val page = rnd.openPage(pi)
                 try {
-                    val maxW = 900; val scale = if (page.width > maxW) maxW.toFloat()/page.width else 1f
+                    val maxW = 1200  // raised from 900 — sharper text and fine lines
+                    val scale = if (page.width > maxW) maxW.toFloat()/page.width else 1f
                     val bw   = (page.width * scale).toInt().coerceAtLeast(1)
                     val bh   = (page.height * scale).toInt().coerceAtLeast(1)
                     // PdfRenderer only supports ARGB_8888; RGB_565 throws "unsupported pixel format"
                     val bmp  = Bitmap.createBitmap(bw, bh, Bitmap.Config.ARGB_8888)
                     bmp.eraseColor(Color.WHITE)
                     page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-                    val imgId   = "${chId}_p%03d".format(pi + 1)
+                    // "img_" prefix keeps this id distinct from the XHTML chapter id
+                    // ("${chId}_p%03d"), which has the same numeric suffix.  Without it,
+                    // both the <item> for the XHTML and the <item> for the image land in
+                    // the OPF manifest with the same id string; the reader's manifest map
+                    // (id → href) lets the image entry overwrite the XHTML entry, so the
+                    // spine resolves to the raw JPEG path instead of the XHTML path, and
+                    // the reader displays JPEG binary as text — producing garbage pages.
+                    val imgId   = "${chId}_img_p%03d".format(pi + 1)
                     val imgHref = "images/${imgId}.jpg"
                     zos.putNextEntry(ZipEntry("OEBPS/$imgHref"))
                     try {
-                        bmp.compress(Bitmap.CompressFormat.JPEG, 82, zos)
+                        bmp.compress(Bitmap.CompressFormat.JPEG, 90, zos)  // raised from 82 — less text blurring
                     } finally {
                         zos.closeEntry()
                         bmp.recycle()
@@ -535,9 +620,19 @@ class EpubBuilderFragment : Fragment() {
     }
 
     private fun pdfXhtml(title: String, pages: List<Pair<String,String>>): String {
-        val imgs = pages.joinToString("\n") { (_,href) ->
-            "<div class=\"page\"><img src=\"$href\" alt=\"page\" style=\"max-width:100%;height:auto;\"/></div>"
-        }
+        // Each page div gets:
+        //  • id="page_N"              — anchor target for the nav page-list
+        //  • epub:type="page-break"   — ePub3 structural semantics on the div
+        //  • <span epub:type="pagebreak"> — the IDPF-recommended inline marker
+        //  • aria-label               — accessibility: announces page number
+        val imgs = pages.mapIndexed { idx, (_, href) ->
+            val pg = idx + 1
+            "<div class=\"pdf-page\" id=\"page_$pg\" epub:type=\"page-break\">" +
+            "<span epub:type=\"pagebreak\" id=\"pg$pg\" aria-label=\"Page $pg\"/>" +
+            "<img src=\"$href\" alt=\"Page $pg\" " +
+            "style=\"max-width:100%;height:auto;display:block;margin:0 auto;\"/>" +
+            "</div>"
+        }.joinToString("\n")
         return xDoc(title, "<h1 class=\"chapter-title\">${title.xe()}</h1>\n$imgs")
     }
 
@@ -561,9 +656,28 @@ class EpubBuilderFragment : Fragment() {
         return xDoc(title, "<h1 class=\"chapter-title\">${title.xe()}</h1>\n$body")
     }
 
+    /**
+     * Converts a Markdown source file to a valid XHTML ePub chapter.
+     *
+     * Uses the CommonMark reference parser (org.commonmark:commonmark), which is
+     * already on the classpath as a transitive dependency of the Markwon library.
+     * This produces the same semantic HTML that MarkdownViewerFragment renders in
+     * the standalone viewer, so the ePub chapter matches the in-app preview.
+     */
+    private fun markdownXhtml(title: String, markdownText: String): String {
+        val parser   = Parser.builder().build()
+        val renderer = HtmlRenderer.builder()
+            .escapeHtml(false)   // preserve any intentional inline HTML in the .md file
+            .build()
+        val html = renderer.render(parser.parse(markdownText))
+        return xDoc(title, "<h1 class=\"chapter-title\">${title.xe()}</h1>\n$html")
+    }
+
     private fun xDoc(title: String, body: String) = """<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:epub="http://www.idpf.org/2007/ops"
+      xml:lang="en">
 <head><title>${title.xe()}</title><link rel="stylesheet" href="style.css" type="text/css"/></head>
 <body>
 $body
@@ -572,7 +686,7 @@ $body
 
     // ─── Cover page XHTML ─────────────────────────────────────────────────────
 
-    private fun buildCoverXhtml() = """<?xml version="1.0" encoding="utf-8"?>
+    private fun buildCoverXhtml(coverFilename: String = "cover.jpg") = """<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="en">
 <head>
@@ -582,7 +696,7 @@ div{display:flex;align-items:center;justify-content:center;height:100vh;}
 img{max-width:100%;max-height:100vh;object-fit:contain;}</style>
 </head>
 <body epub:type="cover">
-  <div><img src="cover.jpg" alt="Cover" epub:type="cover-image"/></div>
+  <div><img src="$coverFilename" alt="Cover" epub:type="cover-image"/></div>
 </body>
 </html>"""
 
@@ -598,8 +712,18 @@ h3{font-size:1.15em;margin:1em 0 .4em}
 p{margin:.45em 0;text-indent:1.6em}
 p:first-of-type,h1+p,h2+p,h3+p{text-indent:0}
 a{color:${t.link};text-decoration:underline}
-.chapter-title{text-indent:0;border-bottom:3px solid ${t.link};padding-bottom:.4em;margin-bottom:1.3em}
+.chapter-title{text-indent:0;font-size:1.05em;border-bottom:1px solid ${t.link}88;padding-bottom:.25em;margin-bottom:.9em}
+/* .page — generic image/single-image chapters */
 .page{text-align:center;margin:.5em 0;page-break-inside:avoid}
+/* .pdf-page — one rendered PDF page per ePub screen:
+   page-break-after forces paginated readers to display exactly one PDF page
+   per "screen page"; break-after is the CSS3 equivalent understood by
+   more modern reading systems (Kobo, Thorium, Apple Books). */
+.pdf-page{text-align:center;margin:0;padding:0;
+  page-break-inside:avoid;page-break-after:always;
+  break-inside:avoid;break-after:page}
+.pdf-page:last-child{page-break-after:auto;break-after:auto}
+.pdf-page img{max-width:100%;height:auto;display:block;margin:0 auto}
 img{max-width:100%;height:auto;display:block;margin:.5em auto}
 pre,code{font-family:'Courier New',monospace;font-size:.87em;background:rgba(128,128,128,.12);padding:.2em .45em;border-radius:3px}
 pre{padding:.8em;overflow-x:auto}
@@ -611,26 +735,49 @@ th{background:rgba(128,128,128,.14);font-weight:600}
 
     // ─── nav.xhtml ────────────────────────────────────────────────────────────
 
-    private fun buildNav(bookTitle: String, chs: List<BuiltChapter>) = """<?xml version="1.0" encoding="utf-8"?>
+    private fun buildNav(bookTitle: String, chs: List<BuiltChapter>): String {
+        // ── Page-list: sequential global page numbers pointing into PDF chapters ──
+        // This <nav epub:type="page-list"> block lets conforming ePub reading systems
+        // (e.g. Apple Books, Kobo, Thorium) show a "Go to page N" control that maps
+        // to the rendered PDF pages.  Only chapters converted from PDF contribute
+        // entries; text/image chapters are skipped.
+        var globalPage = 1
+        val pageListItems = buildString {
+            for (ch in chs) {
+                if (!ch.isPdf || ch.pdfPageCount == 0) continue
+                for (localPage in 1..ch.pdfPageCount) {
+                    appendLine("      <li><a href=\"${ch.xhtmlName}#pg$localPage\">${globalPage++}</a></li>")
+                }
+            }
+        }.trimEnd()
+
+        val pageListNav = if (pageListItems.isNotEmpty()) {
+            "\n  <nav epub:type=\"page-list\" aria-label=\"List of Pages\">\n    <ol>\n$pageListItems\n    </ol>\n  </nav>"
+        } else ""
+
+        return """<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="en">
 <head><title>Table of Contents</title><link rel="stylesheet" href="style.css" type="text/css"/></head>
 <body>
-  <nav epub:type="toc" id="toc">
+  <nav epub:type="toc" id="toc" aria-label="Table of Contents">
     <h1>Table of Contents — ${bookTitle.xe()}</h1>
     <ol>
 ${chs.joinToString("\n") { "      <li><a href=\"${it.xhtmlName}\">${it.title.xe()}</a></li>" }}
     </ol>
-  </nav>
+  </nav>$pageListNav
 </body>
 </html>"""
+    }
 
     // ─── content.opf ─────────────────────────────────────────────────────────
 
     private fun buildOpf(
         title: String, author: String, lang: String,
         desc: String, publisher: String, uid: String,
-        hasCover: Boolean, chs: List<BuiltChapter>
+        hasCover: Boolean, chs: List<BuiltChapter>,
+        coverFilename: String = "cover.jpg",
+        coverMime: String     = "image/jpeg"
     ): String {
         val now = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
             .also { it.timeZone = TimeZone.getTimeZone("UTC") }.format(Date())
@@ -638,7 +785,7 @@ ${chs.joinToString("\n") { "      <li><a href=\"${it.xhtmlName}\">${it.title.xe(
             appendLine("    <item id=\"nav\" href=\"nav.xhtml\" media-type=\"application/xhtml+xml\" properties=\"nav\"/>")
             appendLine("    <item id=\"css\" href=\"style.css\" media-type=\"text/css\"/>")
             if (hasCover) {
-                appendLine("    <item id=\"cover-image\" href=\"cover.jpg\" media-type=\"image/jpeg\" properties=\"cover-image\"/>")
+                appendLine("    <item id=\"cover-image\" href=\"$coverFilename\" media-type=\"$coverMime\" properties=\"cover-image\"/>")
                 appendLine("    <item id=\"cover\" href=\"cover.xhtml\" media-type=\"application/xhtml+xml\"/>")
             }
             for (ch in chs) {
@@ -737,8 +884,13 @@ $sp
     }
 
     private fun isPdf(e: ChapterEntry)   = e.mimeType == "application/pdf" || e.displayName.endsWith(".pdf", true)
-    private fun isDocx(e: ChapterEntry)  = e.mimeType.contains("wordprocessingml") || e.displayName.endsWith(".docx", true)
+    private fun isDocx(e: ChapterEntry)  = e.mimeType.contains("wordprocessingml") ||
+        e.mimeType == "application/msword" ||
+        e.displayName.endsWith(".docx", true) || e.displayName.endsWith(".doc", true)
     private fun isHtml(e: ChapterEntry)  = e.mimeType.startsWith("text/html") || e.displayName.endsWith(".html", true) || e.displayName.endsWith(".htm", true)
+    private fun isMarkdown(e: ChapterEntry) = e.mimeType == "text/markdown" ||
+        e.mimeType == "text/x-markdown" ||
+        e.displayName.endsWith(".md", true) || e.displayName.endsWith(".markdown", true)
     private fun isImage(e: ChapterEntry) = e.mimeType.startsWith("image/") ||
         e.displayName.run { endsWith(".jpg", true) || endsWith(".jpeg", true) ||
             endsWith(".png", true) || endsWith(".gif", true) ||
@@ -784,7 +936,7 @@ $sp
 
     companion object {
         private const val CONTAINER_XML = """<?xml version="1.0" encoding="UTF-8"?>
-<container version="1.0" xmlns="urn:oasis:schemas:container">
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
   <rootfiles>
     <rootfile full-path="OEBPS/content.opf"
               media-type="application/oebps-package+xml"/>

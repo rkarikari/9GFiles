@@ -515,11 +515,17 @@ class EpubReaderFragment : Fragment() {
             // Read + process entirely on IO so the main thread is never blocked
             val finalHtml = withContext(Dispatchers.IO) {
                 val raw = readEntry(ch.entryName) ?: "<p>Could not load chapter.</p>"
-                // Inline every resource the WebView cannot reach inside the ZIP:
-                // first CSS (so the ePub's own styles render correctly), then images.
-                val withCss    = embedStylesheets(raw, ch.basePath)
-                val withImages = embedImages(withCss, ch.basePath)
-                ensureReadableDefaults(withImages)
+                // Pipeline order matters for memory:
+                //  1. embedStylesheets – replaces <link> tags with inline <style> blocks (string stays small)
+                //  2. ensureReadableDefaults – injects a fallback <style> via Regex.replaceFirst;
+                //     must run HERE, before images are embedded, because Matcher.appendTail
+                //     inflates the entire input string to UTF-16 — on a post-image string that
+                //     can be 30-40 MB of base64 data this causes an OutOfMemoryError.
+                //  3. embedImages – base64-encodes every image src into a data-URI, expanding
+                //     the string significantly; the regex work is already done by this point.
+                val withCss      = embedStylesheets(raw, ch.basePath)
+                val withDefaults = ensureReadableDefaults(withCss)
+                embedImages(withDefaults, ch.basePath)
             }
 
             if (!isAdded) return@launch

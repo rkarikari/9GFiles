@@ -22,6 +22,17 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.radiozport.ninegfiles.ui.dialogs.BatchRenameDialog
+import com.radiozport.ninegfiles.ui.dialogs.CompressDialog
+import com.radiozport.ninegfiles.ui.dialogs.FileActionsBottomSheet
+import com.radiozport.ninegfiles.ui.dialogs.FileDetailsDialog
+import com.radiozport.ninegfiles.ui.dialogs.FileHashDialog
+import com.radiozport.ninegfiles.ui.dialogs.FileCombineDialog
+import com.radiozport.ninegfiles.ui.dialogs.EncryptedZipDialog
+import com.radiozport.ninegfiles.ui.dialogs.EncryptFileDialog
+import com.radiozport.ninegfiles.ui.dialogs.RenameDialog
+import com.radiozport.ninegfiles.ui.viewer.QuickPeekBottomSheet
 import com.radiozport.ninegfiles.R
 import com.radiozport.ninegfiles.data.model.*
 import com.radiozport.ninegfiles.databinding.FragmentSearchBinding
@@ -31,6 +42,7 @@ import com.radiozport.ninegfiles.ui.explorer.FileExplorerViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -179,7 +191,7 @@ class SearchFragment : Fragment() {
                 toggleSearchSelection(item)
                 true
             },
-            onItemMenuClick = { _, _ -> }
+            onItemMenuClick = ::showFileContextMenu
         )
         binding.rvResults.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -246,12 +258,61 @@ class SearchFragment : Fragment() {
                         true
                     }
                     R.id.action_share -> { shareSearchFiles(items); true }
-                    R.id.action_delete_permanently -> {
-                        if (items.isNotEmpty()) viewModel.delete(items)
-                        clearSearchSelection(); true
+                    R.id.action_wifi_direct_send -> {
+                        if (items.isNotEmpty()) {
+                            val bundle = android.os.Bundle().apply {
+                                putStringArray("pendingFilePaths", items.map { it.path }.toTypedArray())
+                            }
+                            rootNavController.navigate(R.id.wifiDirectFragment, bundle)
+                            clearSearchSelection()
+                        }
+                        true
+                    }
+                    R.id.action_compress -> {
+                        if (items.isNotEmpty()) {
+                            com.radiozport.ninegfiles.ui.dialogs.CompressDialog(items) { outputName ->
+                                viewModel.compress(items, outputName)
+                            }.show(childFragmentManager, "CompressDialog")
+                        }
+                        true
+                    }
+                    R.id.action_compress_encrypted -> {
+                        if (items.isNotEmpty()) {
+                            EncryptedZipDialog.show(childFragmentManager, items) { path ->
+                                Snackbar.make(binding.root, "Saved: $path", Snackbar.LENGTH_LONG).show()
+                            }
+                            clearSearchSelection()
+                        }
+                        true
+                    }
+                    R.id.action_batch_rename -> {
+                        if (items.isNotEmpty()) {
+                            BatchRenameDialog(items) { template ->
+                                viewModel.batchRename(items, template)
+                            }.show(childFragmentManager, "BatchRenameDialog")
+                        }
+                        true
                     }
                     R.id.action_shred -> {
-                        if (items.isNotEmpty()) viewModel.shred(items)
+                        if (items.isNotEmpty()) {
+                            MaterialAlertDialogBuilder(requireContext())
+                                .setTitle("Securely Shred?")
+                                .setMessage("${items.size} item(s) will be overwritten 3 times then deleted. This cannot be undone.")
+                                .setPositiveButton("Shred") { _, _ -> viewModel.shred(items) }
+                                .setNegativeButton("Cancel", null)
+                                .show()
+                        }
+                        clearSearchSelection(); true
+                    }
+                    R.id.action_delete_permanently -> {
+                        if (items.isNotEmpty()) {
+                            MaterialAlertDialogBuilder(requireContext())
+                                .setTitle("Delete permanently?")
+                                .setMessage("${items.size} item(s) will be deleted forever.")
+                                .setPositiveButton("Delete") { _, _ -> viewModel.delete(items) }
+                                .setNegativeButton("Cancel", null)
+                                .show()
+                        }
                         clearSearchSelection(); true
                     }
                     else -> false
@@ -412,45 +473,126 @@ class SearchFragment : Fragment() {
         }
     }
 
-    private fun openFile(item: FileItem) {
-        when (item.fileType) {
-            FileType.IMAGE -> rootNavController.navigate(R.id.imageViewerFragment,
-                android.os.Bundle().apply { putString("path", item.path) })
-            FileType.AUDIO, FileType.VIDEO -> rootNavController.navigate(R.id.mediaInfoFragment,
-                android.os.Bundle().apply { putString("mediaPath", item.path) })
-            FileType.PDF -> rootNavController.navigate(R.id.pdfViewerFragment,
-                android.os.Bundle().apply { putString("pdfPath", item.path) })
-            FileType.ARCHIVE -> {
-                val supported = item.extension in setOf("zip","tar","gz","bz2","xz","7z","rar","tgz","tbz2","txz")
-                if (supported) rootNavController.navigate(R.id.zipBrowserFragment,
-                    android.os.Bundle().apply { putString("archivePath", item.path) })
-                else openWithSystem(item)
-            }
-            FileType.APK -> rootNavController.navigate(R.id.apkInfoFragment,
-                android.os.Bundle().apply { putString("apkPath", item.path) })
-            FileType.CODE, FileType.DOCUMENT -> {
-                if (item.extension.lowercase() == "epub")
-                    rootNavController.navigate(R.id.epubReaderFragment,
-                        android.os.Bundle().apply { putString("epubPath", item.path) })
-                else if (FileUtils.isTextFile(item.file))
-                    rootNavController.navigate(R.id.textEditorFragment,
-                        android.os.Bundle().apply { putString("filePath", item.path) })
-                else openWithSystem(item)
-            }
-            else -> openWithSystem(item)
+    // ─── File context menu (mirrors FileExplorerFragment) ────────────────────
+
+    private fun showFileContextMenu(item: FileItem, anchor: View) {
+        FileActionsBottomSheet.show(childFragmentManager, item) { actionId ->
+            handleContextMenuAction(actionId, item)
         }
     }
 
-    private fun openWithSystem(item: FileItem) {
-        try {
-            val uri = FileProvider.getUriForFile(requireContext(), "${requireContext().packageName}.fileprovider", item.file)
-            startActivity(Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, item.mimeType)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            })
-        } catch (_: ActivityNotFoundException) {
-            Snackbar.make(binding.root, "No app to open this file", Snackbar.LENGTH_SHORT).show()
+    private fun handleContextMenuAction(actionId: Int, item: FileItem) {
+        when (actionId) {
+            R.id.action_quick_peek  -> QuickPeekBottomSheet.newInstance(item).show(childFragmentManager, "QuickPeek")
+            R.id.action_open        -> openFile(item)
+            R.id.action_open_with   -> openWithSystem(item)
+            R.id.action_copy        -> viewModel.copy(listOf(item))
+            R.id.action_cut         -> viewModel.cut(listOf(item))
+            R.id.action_delete      -> viewModel.trash(listOf(item))
+            R.id.action_delete_permanently -> {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Delete permanently?")
+                    .setMessage("This item will be deleted forever.")
+                    .setPositiveButton("Delete") { _, _ -> viewModel.delete(listOf(item)) }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
+            R.id.action_shred       -> {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Securely Shred?")
+                    .setMessage("This item will be overwritten 3 times then deleted. This cannot be undone.")
+                    .setPositiveButton("Shred") { _, _ -> viewModel.shred(listOf(item)) }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
+            R.id.action_rename      -> {
+                RenameDialog(item) { newName ->
+                    viewModel.rename(item, newName)
+                }.show(childFragmentManager, "RenameDialog")
+            }
+            R.id.action_share       -> shareSearchFiles(listOf(item))
+            R.id.action_bookmark    -> viewModel.toggleBookmark(item)
+            R.id.action_compress    -> {
+                CompressDialog(listOf(item)) { outputName ->
+                    viewModel.compress(listOf(item), outputName)
+                }.show(childFragmentManager, "CompressDialog")
+            }
+            R.id.action_compress_encrypted -> {
+                EncryptedZipDialog.show(childFragmentManager, listOf(item)) { path ->
+                    Snackbar.make(binding.root, "Saved: $path", Snackbar.LENGTH_LONG).show()
+                }
+            }
+            R.id.action_wifi_direct_send -> {
+                val bundle = android.os.Bundle().apply {
+                    putStringArray("pendingFilePaths", arrayOf(item.path))
+                }
+                rootNavController.navigate(R.id.wifiDirectFragment, bundle)
+            }
+            R.id.action_extract     -> viewModel.extract(item)
+            R.id.action_details     -> {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val details = viewModel.getFileDetails2(item)
+                    FileDetailsDialog(item, details).show(childFragmentManager, "FileDetailsDialog")
+                }
+            }
+            R.id.action_checksums   -> FileHashDialog(item).show(childFragmentManager, "FileHashDialog")
+            R.id.action_copy_path   -> {
+                FileUtils.copyPathToClipboard(requireContext(), item.path)
+                Snackbar.make(binding.root, "Path copied", Snackbar.LENGTH_SHORT).show()
+            }
+            R.id.action_encrypt     -> EncryptFileDialog.show(childFragmentManager, item) { success, msg ->
+                Snackbar.make(binding.root, msg, Snackbar.LENGTH_SHORT).show()
+            }
+            R.id.action_exif        -> rootNavController.navigate(
+                R.id.exifViewerFragment,
+                android.os.Bundle().apply { putString("filePath", item.path) }
+            )
+            R.id.action_combine     -> FileCombineDialog.show(childFragmentManager, item) { success, msg ->
+                Snackbar.make(binding.root, msg, Snackbar.LENGTH_SHORT).show()
+            }
+            R.id.action_note        -> {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val existing = try {
+                        viewModel.repo.getNoteForFile(item.path).first()?.note ?: ""
+                    } catch (_: Exception) { "" }
+                    val editText = com.google.android.material.textfield.TextInputEditText(requireContext()).apply {
+                        setText(existing)
+                        hint = "Write a note about this file…"
+                        minLines = 3; maxLines = 8
+                        isSingleLine = false
+                        setPadding(48, 24, 48, 8)
+                    }
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("Note: ${item.name}")
+                        .setView(editText)
+                        .setPositiveButton("Save") { _, _ ->
+                            val text = editText.text?.toString()?.trim() ?: ""
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                if (text.isEmpty()) viewModel.repo.deleteNote(item.path)
+                                else viewModel.repo.upsertNote(item.path, text)
+                                Snackbar.make(binding.root,
+                                    if (text.isEmpty()) "Note removed" else "Note saved",
+                                    Snackbar.LENGTH_SHORT).show()
+                            }
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .show()
+                }
+            }
         }
+    }
+
+    private fun openFile(item: FileItem) {
+        com.radiozport.ninegfiles.utils.FileOpener.open(
+            fragment      = this,
+            navController = rootNavController,
+            item          = item,
+            snackbarRoot  = binding.root,
+        )
+    }
+
+    private fun openWithSystem(item: FileItem) {
+        com.radiozport.ninegfiles.utils.FileOpener.openWithSystem(this, item, binding.root)
     }
 
     override fun onDestroyView() {

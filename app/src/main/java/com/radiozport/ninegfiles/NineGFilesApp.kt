@@ -100,6 +100,9 @@ class NineGFilesApp : Application(), Configuration.Provider {
         createAllNotificationChannels()
         bootstrapPrivateDirectories()
 
+        // Purge any temp-decrypted files left over from a previous session
+        com.radiozport.ninegfiles.utils.FileOpener.purgeTempDir(this)
+
         // Apply the user's saved theme and accent colour on the main thread
         // so the very first frame is already correct (avoids a white flash).
         applicationScope.launch(Dispatchers.Main) {

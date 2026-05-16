@@ -415,6 +415,75 @@ object EncryptionUtils {
 
     fun isEncrypted(file: File): Boolean = file.name.endsWith(ENCRYPTED_EXT)
 
+    /**
+     * Returns the inner extension of a `.9genc` file — the extension that
+     * identifies the decrypted content type.
+     *
+     * Examples:
+     *   "report.pdf.9genc"   → "pdf"
+     *   "novel.epub.9genc"   → "epub"
+     *   "notes.txt.9genc"    → "txt"
+     *   "plain.9genc"        → ""   (no inner extension)
+     *   "document.pdf"       → ""   (not encrypted)
+     */
+    fun innerExtension(file: File): String {
+        if (!file.name.endsWith(ENCRYPTED_EXT, ignoreCase = true)) return ""
+        val inner = file.name.dropLast(ENCRYPTED_EXT.length)  // e.g. "report.pdf"
+        return inner.substringAfterLast('.', missingDelimiterValue = "").lowercase()
+    }
+
+    /**
+     * Decrypts a `9GEK` device-key file to a temporary file on disk.
+     *
+     * This is required for readers that need a real file descriptor rather than
+     * in-memory bytes (e.g. [android.graphics.pdf.PdfRenderer]).
+     *
+     * The caller is responsible for deleting [tempFile] when finished.
+     *
+     * @param source             The `.9genc` encrypted file.
+     * @param tempFile           Destination temp file path; created/overwritten.
+     * @param sessionKeyDecryptor Callback that unwraps the RSA-encrypted session key
+     *                           via the Android Keystore.
+     * @return `true` on success; `false` if the file is not a valid `9GEK` container
+     *         or decryption fails.
+     */
+    suspend fun decryptDeviceToTempFile(
+        source: File,
+        tempFile: File,
+        sessionKeyDecryptor: (ByteArray) -> ByteArray
+    ): Boolean = withContext(Dispatchers.IO) {
+        try {
+            java.io.DataInputStream(java.io.FileInputStream(source)).use { dis ->
+                val magic = ByteArray(4).also { dis.readFully(it) }
+                if (String(magic, Charsets.US_ASCII) != MAGIC_DEVICE) return@withContext false
+                val version = dis.readByte()
+                if (version != VERSION_DEVICE) return@withContext false
+
+                val encKeyLen = dis.readInt()
+                val encSessionKey = ByteArray(encKeyLen).also { dis.readFully(it) }
+                val sessionKeyBytes = sessionKeyDecryptor(encSessionKey)
+                val sessionKey = javax.crypto.spec.SecretKeySpec(sessionKeyBytes, "AES")
+
+                val iv = ByteArray(IV_LEN).also { dis.readFully(it) }
+                val cipher = Cipher.getInstance("AES/GCM/NoPadding").apply {
+                    init(Cipher.DECRYPT_MODE, sessionKey, GCMParameterSpec(TAG_LEN, iv))
+                }
+
+                java.io.FileOutputStream(tempFile).use { fos ->
+                    val buf = ByteArray(BUFFER_SIZE)
+                    var read: Int
+                    while (dis.read(buf).also { read = it } != -1) {
+                        fos.write(cipher.update(buf, 0, read))
+                    }
+                    fos.write(cipher.doFinal())
+                }
+                sessionKeyBytes.fill(0)
+                true
+            }
+        } catch (_: javax.crypto.AEADBadTagException) { tempFile.delete(); false }
+          catch (_: Exception)                         { tempFile.delete(); false }
+    }
+
     private fun deriveKey(password: String, salt: ByteArray): SecretKeySpec {
         val spec = PBEKeySpec(password.toCharArray(), salt, PBKDF2_ITERATIONS, KEY_LEN)
         val raw  = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded

@@ -17,6 +17,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import com.radiozport.ninegfiles.utils.DeviceKeyManager
+import com.radiozport.ninegfiles.utils.EncryptionUtils
 
 class PdfViewerFragment : Fragment() {
 
@@ -51,11 +53,43 @@ class PdfViewerFragment : Fragment() {
         binding.tvFileName.text = file.name
         binding.progressBar.isVisible = true
 
-        // Print button
-        binding.btnPrint.setOnClickListener { printPdf(file) }
-
         viewLifecycleOwner.lifecycleScope.launch {
-            val pageCount = withContext(Dispatchers.IO) { getPageCount(path) }
+            // ── Decrypt if this is a .pdf.9genc device-key file ──────────────
+            val pdfPath: String? = withContext(Dispatchers.IO) {
+                if (!EncryptionUtils.isEncrypted(file)) return@withContext path
+
+                when (EncryptionUtils.detectFormat(file)) {
+                    EncryptionUtils.EncryptionFormat.DEVICE_KEY -> {
+                        val tmpFile = File(requireContext().cacheDir,
+                            "dec_${System.currentTimeMillis()}.pdf")
+                        val ok = EncryptionUtils.decryptDeviceToTempFile(
+                            source             = file,
+                            tempFile           = tmpFile,
+                            sessionKeyDecryptor = { DeviceKeyManager.decryptSessionKey(it) }
+                        )
+                        if (ok) tmpFile.absolutePath else null
+                    }
+                    EncryptionUtils.EncryptionFormat.PASSWORD_BASED -> null  // needs password UI
+                    null -> null
+                }
+            }
+
+            if (_binding == null) return@launch
+
+            if (pdfPath == null) {
+                binding.progressBar.isVisible = false
+                showError("Could not decrypt PDF — wrong device or unsupported format")
+                return@launch
+            }
+
+            val pdfFile = File(pdfPath)
+            // Track temp files for deletion on close
+            if (pdfPath != path) tempDecryptedFile = pdfFile
+
+            // Print button — use the (possibly decrypted) pdf file
+            binding.btnPrint.setOnClickListener { printPdf(pdfFile) }
+
+            val pageCount = withContext(Dispatchers.IO) { getPageCount(pdfPath) }
             if (_binding == null) return@launch
 
             binding.progressBar.isVisible = false
@@ -64,11 +98,11 @@ class PdfViewerFragment : Fragment() {
 
             binding.tvPageCount.text = "$pageCount page${if (pageCount == 1) "" else "s"}"
 
-            val adapter = PdfPageAdapter(path, pageCount)
+            val adapter = PdfPageAdapter(pdfPath, pageCount)
             binding.rvPages.layoutManager = LinearLayoutManager(requireContext())
             binding.rvPages.adapter = adapter
             binding.rvPages.setRecycledViewPool(RecyclerView.RecycledViewPool().also {
-                it.setMaxRecycledViews(0, 3) // Keep only 3 bitmaps in pool
+                it.setMaxRecycledViews(0, 3)
             })
         }
     }
@@ -197,7 +231,16 @@ class PdfViewerFragment : Fragment() {
         binding.tvError.isVisible = true
     }
 
-    override fun onDestroyView() { super.onDestroyView(); _binding = null }
+    /** Holds a reference to any temp-decrypted PDF so we can delete it on close. */
+    private var tempDecryptedFile: File? = null
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+        // Securely delete the temp plaintext file now that the viewer is closing
+        tempDecryptedFile?.delete()
+        tempDecryptedFile = null
+    }
 }
 
 // ─── PdfPageAdapter ───────────────────────────────────────────────────────────

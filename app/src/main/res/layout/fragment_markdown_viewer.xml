@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/colorSurface">
+
+    <!-- Header bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="?attr/colorSurfaceVariant"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="8dp"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvFileName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:ellipsize="middle"
+                android:maxLines="1"
+                android:text="README.md" />
+
+            <TextView
+                android:id="@+id/tvDocInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:alpha="0.7"
+                android:text="Markdown" />
+
+        </LinearLayout>
+
+        <!-- Preview button (WebView HTML render) — left of pencil -->
+        <ImageButton
+            android:id="@+id/btnPreview"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_file_document"
+            android:contentDescription="Preview"
+            app:tint="?attr/colorOnSurfaceVariant" />
+
+        <!-- Edit button -->
+        <ImageButton
+            android:id="@+id/btnEditInEditor"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_menu_edit"
+            android:contentDescription="Edit"
+            app:tint="?attr/colorOnSurfaceVariant" />
+
+        <!-- Save button — visible only in edit mode -->
+        <ImageButton
+            android:id="@+id/btnSave"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_save"
+            android:contentDescription="Save"
+            app:tint="?attr/colorPrimary"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/btnShare"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_share"
+            android:contentDescription="Share"
+            app:tint="?attr/colorOnSurfaceVariant" />
+
+    </LinearLayout>
+
+    <!-- Mode indicator strip -->
+    <TextView
+        android:id="@+id/tvModeLabel"
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:gravity="center"
+        android:textAppearance="?attr/textAppearanceLabelSmall"
+        android:textColor="?attr/colorPrimary"
+        android:background="?attr/colorSurfaceVariant"
+        android:alpha="0.85"
+        android:visibility="gone" />
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progressBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tvError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="24dp"
+        android:gravity="center"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorError"
+        android:visibility="gone" />
+
+    <!-- MODE: DEFAULT — Markwon-rendered markdown (TextView, no WebView) -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvMarkdown"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:lineSpacingMultiplier="1.5"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:textIsSelectable="true" />
+
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- MODE: PREVIEW — WebView HTML render with inline images -->
+    <WebView
+        android:id="@+id/webviewPreview"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:visibility="gone" />
+
+    <!-- MODE: EDIT — Editable raw markdown source -->
+    <ScrollView
+        android:id="@+id/scrollEdit"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/etEditor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSurface"
+            android:fontFamily="monospace"
+            android:gravity="top|start"
+            android:inputType="textMultiLine|textNoSuggestions"
+            android:padding="16dp"
+            android:scrollbars="vertical"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="13sp"
+            android:lineSpacingMultiplier="1.4"
+            android:letterSpacing="0.01" />
+
+    </ScrollView>
+
+</LinearLayout>

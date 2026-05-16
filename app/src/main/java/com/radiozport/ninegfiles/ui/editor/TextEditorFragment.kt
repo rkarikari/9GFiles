@@ -22,6 +22,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileNotFoundException
+import com.radiozport.ninegfiles.utils.DeviceKeyManager
+import com.radiozport.ninegfiles.utils.EncryptionUtils
 import java.util.regex.Pattern
 
 class TextEditorFragment : Fragment() {
@@ -82,6 +84,32 @@ class TextEditorFragment : Fragment() {
                     val file = File(filePath)
                     if (!file.exists()) throw FileNotFoundException("File not found: $filePath")
                     if (!file.canRead()) throw SecurityException("Cannot read: $filePath")
+
+                    // ── Auto-decrypt .9genc device-key files ─────────────────
+                    if (EncryptionUtils.isEncrypted(file)) {
+                        return@withContext when (EncryptionUtils.detectFormat(file)) {
+                            EncryptionUtils.EncryptionFormat.DEVICE_KEY -> {
+                                val bytes = EncryptionUtils.decryptDeviceToBytes(
+                                    source              = file,
+                                    sessionKeyDecryptor = { DeviceKeyManager.decryptSessionKey(it) }
+                                ) ?: throw Exception("Decryption failed — this file may be encrypted for a different device")
+                                // Adjust the effective extension to the inner type
+                                // so syntax highlighting and preview work correctly
+                                fileExtension = EncryptionUtils.innerExtension(file)
+                                if (bytes.size > 2 * 1024 * 1024) {
+                                    "[File too large — ${FileUtils.formatSize(bytes.size.toLong())}]\n\nOnly files under 2 MB are shown inline."
+                                } else {
+                                    bytes.toString(Charsets.UTF_8)
+                                }
+                            }
+                            EncryptionUtils.EncryptionFormat.PASSWORD_BASED ->
+                                throw Exception("This file is password-encrypted. Use the Secure Vault to decrypt it first.")
+                            null ->
+                                throw Exception("Unknown encryption format")
+                        }
+                    }
+
+                    // ── Plain file ────────────────────────────────────────────
                     if (file.length() > 2 * 1024 * 1024) {
                         return@withContext "[File too large — ${FileUtils.formatSize(file.length())}]\n\nOnly files under 2 MB are shown inline."
                     }
@@ -89,7 +117,8 @@ class TextEditorFragment : Fragment() {
                 }
                 originalContent = content
                 binding.editorContent.setText(content)
-                binding.editorContent.isEnabled = false
+                // Encrypted files are read-only (we don't write back to the .9genc container)
+                binding.editorContent.isEnabled = !EncryptionUtils.isEncrypted(File(filePath))
                 binding.loadingIndicator.visibility = View.GONE
                 updateLineCount(content)
                 applySyntaxHighlighting()

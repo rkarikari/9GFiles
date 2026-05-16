@@ -1,6 +1,5 @@
 package com.radiozport.ninegfiles.ui.home
 
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
@@ -564,63 +563,20 @@ class HomeFragment : Fragment() {
 
     private fun openFile(item: FileItem) {
         viewModel.recordAccess(item)
-        val nav = findNavController()
-        when {
-            item.isDirectory -> {
-                viewModel.navigate(item.path)
-                nav.navigate(R.id.action_home_to_explorer)
-            }
-            item.fileType == FileType.IMAGE ->
-                nav.navigate(R.id.action_home_to_image_viewer,
-                    Bundle().apply { putString("path", item.path) })
-            item.fileType == FileType.AUDIO || item.fileType == FileType.VIDEO ->
-                nav.navigate(R.id.action_home_to_media_info,
-                    Bundle().apply { putString("mediaPath", item.path) })
-            item.fileType == FileType.PDF ->
-                nav.navigate(R.id.action_home_to_pdf_viewer,
-                    Bundle().apply { putString("pdfPath", item.path) })
-            item.fileType == FileType.ARCHIVE &&
-                item.extension in setOf("zip","tar","gz","bz2","xz","7z","rar","tgz","tbz2","txz") ->
-                nav.navigate(R.id.action_home_to_zip_browser,
-                    Bundle().apply { putString("archivePath", item.path) })
-            item.fileType == FileType.APK ->
-                nav.navigate(R.id.action_home_to_apk_info,
-                    Bundle().apply { putString("apkPath", item.path) })
-            item.fileType == FileType.CODE || item.fileType == FileType.DOCUMENT -> when {
-                item.extension.lowercase() == "epub" || item.extension.lowercase() == "9genc" ->
-                    nav.navigate(R.id.action_home_to_epub_reader,
-                        Bundle().apply { putString("epubPath", item.path) })
-                FileUtils.isTextFile(item.file) ->
-                    nav.navigate(R.id.action_home_to_text_editor,
-                        Bundle().apply { putString("filePath", item.path) })
-                else -> openWithSystem(item)
-            }
-            else -> openWithSystem(item)
-        }
+        com.radiozport.ninegfiles.utils.FileOpener.open(
+            fragment      = this,
+            navController = findNavController(),
+            item          = item,
+            snackbarRoot  = binding.root,
+        )
     }
 
     private fun openWithSystem(item: FileItem) {
-        try {
-            val uri = FileProvider.getUriForFile(requireContext(),
-                "${requireContext().packageName}.fileprovider", item.file)
-            startActivity(Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, item.mimeType)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            })
-        } catch (_: ActivityNotFoundException) { openFileWith(item) }
+        com.radiozport.ninegfiles.utils.FileOpener.openWithSystem(this, item, binding.root)
     }
 
     private fun openFileWith(item: FileItem) {
-        try {
-            val uri = FileProvider.getUriForFile(requireContext(),
-                "${requireContext().packageName}.fileprovider", item.file)
-            startActivity(Intent.createChooser(Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, "*/*")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }, "Open with…"))
-        } catch (_: ActivityNotFoundException) {
-            Snackbar.make(binding.root, "No app found to open this file", Snackbar.LENGTH_SHORT).show()
-        }
+        com.radiozport.ninegfiles.utils.FileOpener.openWithChooser(this, item, binding.root)
     }
 
     // ── File context menu ─────────────────────────────────────────────────

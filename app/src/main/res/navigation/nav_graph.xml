@@ -48,6 +48,12 @@
         <action android:id="@+id/action_home_to_epub_reader" app:destination="@id/epubReaderFragment"
             app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_docx_viewer" app:destination="@id/docxViewerFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_markdown_viewer" app:destination="@id/markdownViewerFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
         <action android:id="@+id/action_home_to_exif_viewer" app:destination="@id/exifViewerFragment"
             app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
@@ -72,6 +78,12 @@
             app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
         <action android:id="@+id/action_explorer_to_epub_reader" app:destination="@id/epubReaderFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_explorer_to_docx_viewer" app:destination="@id/docxViewerFragment"
+            app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_explorer_to_markdown_viewer" app:destination="@id/markdownViewerFragment"
             app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
         <action android:id="@+id/action_explorer_to_zip_browser" app:destination="@id/zipBrowserFragment"
@@ -149,6 +161,18 @@
         android:name="com.radiozport.ninegfiles.ui.viewer.EpubReaderFragment"
         android:label="eBook Reader">
         <argument android:name="epubPath" app:argType="string"/>
+    </fragment>
+
+    <fragment android:id="@+id/docxViewerFragment"
+        android:name="com.radiozport.ninegfiles.ui.viewer.DocxViewerFragment"
+        android:label="Document Viewer" tools:layout="@layout/fragment_docx_viewer">
+        <argument android:name="docxPath" app:argType="string"/>
+    </fragment>
+
+    <fragment android:id="@+id/markdownViewerFragment"
+        android:name="com.radiozport.ninegfiles.ui.viewer.MarkdownViewerFragment"
+        android:label="Markdown Viewer" tools:layout="@layout/fragment_markdown_viewer">
+        <argument android:name="mdPath" app:argType="string"/>
     </fragment>
 
     <fragment android:id="@+id/zipBrowserFragment"

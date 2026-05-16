@@ -32,8 +32,14 @@ data class FileItem(
     val fileType: FileType
         get() = when {
             isDirectory -> FileType.FOLDER
+            // For encrypted files, derive the type from the inner extension
+            // (e.g. "report.pdf.9genc" → PDF, "novel.epub.9genc" → EBOOK)
+            name.endsWith(".9genc", ignoreCase = true) -> FileType.fromEncryptedFile(name)
             else -> FileType.fromExtension(extension)
         }
+
+    /** True if this file is a 9GFiles encrypted document. */
+    val is9genc: Boolean get() = name.endsWith(".9genc", ignoreCase = true)
 
     companion object {
         fun fromFile(file: File, childCount: Int = 0): FileItem {
@@ -86,13 +92,33 @@ enum class FileType(val iconRes: Int, val colorRes: Int) {
             "mp3", "flac", "aac", "wav", "ogg", "m4a", "wma", "opus", "aiff" -> AUDIO
             "pdf" -> PDF
             "doc", "docx", "odt", "rtf", "txt", "md", "html", "htm", "xml", "json", "yaml", "yml" -> DOCUMENT
-            "epub", "9genc" -> EBOOK
+            "epub" -> EBOOK
             "zip", "rar", "7z", "tar", "gz", "bz2", "xz", "tar.gz", "tar.bz2", "tar.xz" -> ARCHIVE
             "apk", "xapk", "apks" -> APK
             "kt", "java", "py", "js", "ts", "cpp", "c", "h", "cs", "go", "rb", "php", "swift", "rs" -> CODE
             "xls", "xlsx", "ods", "csv" -> SPREADSHEET
             "ppt", "pptx", "odp" -> PRESENTATION
             else -> UNKNOWN
+        }
+
+        /**
+         * Resolves the [FileType] for a `.9genc` encrypted file by inspecting
+         * the inner extension (the extension before `.9genc`).
+         *
+         * Examples:
+         *   "report.pdf.9genc"  → PDF
+         *   "novel.epub.9genc"  → EBOOK
+         *   "notes.txt.9genc"   → DOCUMENT
+         *   "data.xlsx.9genc"   → SPREADSHEET
+         *   "plain.9genc"       → EBOOK   (fallback — treated as encrypted ePub)
+         */
+        fun fromEncryptedFile(fileName: String): FileType {
+            val inner = fileName
+                .removeSuffix(".9genc")
+                .removeSuffix(".9GENC")
+                .substringAfterLast('.', missingDelimiterValue = "")
+                .lowercase()
+            return if (inner.isEmpty()) EBOOK else fromExtension(inner)
         }
     }
 }
@@ -127,7 +153,9 @@ object MimeTypeHelper {
         "tar" -> "application/x-tar"
         "gz" -> "application/gzip"
         "epub" -> "application/epub+zip"
-        "9genc" -> "application/epub+zip"   // encrypted ePub — same underlying format
+        // Encrypted containers: MIME reflects the encrypted wrapper, not the inner type.
+        // The inner type is resolved at open-time via EncryptionUtils.innerExtension().
+        "9genc" -> "application/octet-stream"
         "apk" -> "application/vnd.android.package-archive"
         "txt" -> "text/plain"
         "html", "htm" -> "text/html"
